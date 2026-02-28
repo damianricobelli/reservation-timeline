@@ -1,11 +1,11 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Container } from "@/components/container";
 import { Header } from "@/components/header";
-import { SearchInput } from "./components/search-input";
-import { FilterMenu } from "./components/filter-menu";
-import { ViewModeSelector } from "./components/view-mode-selector";
 import { getQueryClient } from "@/core/get-query-client";
 import { timelineOptions } from "@/data/timeline-options";
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { FilterMenu } from "./components/filter-menu";
+import { SearchInput } from "./components/search-input";
+import { ViewModeSelector } from "./components/view-mode-selector";
 
 export default function Page() {
   const queryClient = getQueryClient();

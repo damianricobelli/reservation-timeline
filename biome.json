@@ -35,6 +35,9 @@
       },
       "performance": {
         "noImgElement": "off"
+      },
+      "style": {
+        "useImportType": "warn"
       }
     },
     "domains": {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { SlidersHorizontalIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,9 +15,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { ReservationStatus } from "@/core/types";
-import { useTimelineQueryState } from "@/hooks/use-timeline-query-state";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { timelineOptions } from "@/data/timeline-options";
+import { useTimelineQueryState } from "@/hooks/use-timeline-query-state";
 
 interface StatusConfig {
   value: ReservationStatus;
@@ -38,7 +38,7 @@ const ALL_STATUS_VALUES = STATUS_CONFIGS.map(({ value }) => value);
 export const FilterMenu = () => {
   const { data } = useSuspenseQuery(timelineOptions);
 
-  console.log(data)
+  console.log(data);
 
   const [status, setStatus] = useTimelineQueryState("status", {
     defaultValue: ALL_STATUS_VALUES,

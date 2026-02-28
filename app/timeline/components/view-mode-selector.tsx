@@ -1,12 +1,12 @@
 "use client";
 
-import { Tabs, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import {
   CalendarDaysIcon,
   CalendarIcon,
   CalendarRangeIcon,
 } from "lucide-react";
 import { useTimelineQueryState } from "@/hooks/use-timeline-query-state";
+import { Tabs, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 
 export const ViewModeSelector = () => {
   const [viewMode, setViewMode] = useTimelineQueryState("view", {

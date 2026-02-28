@@ -1,13 +1,13 @@
 "use client";
 
+import { SearchIcon } from "lucide-react";
+import { useQueryState } from "nuqs";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { useTimelineQueryState } from "@/hooks/use-timeline-query-state";
-import { SearchIcon } from "lucide-react";
-import { useQueryState } from "nuqs";
 
 export const SearchInput = () => {
   const [search, setSearch] = useTimelineQueryState("searchInput", {
