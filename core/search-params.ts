@@ -1,6 +1,6 @@
 import { parseAsString, parseAsStringEnum } from "nuqs";
-import { ReservationStatus, TimelineConfig } from "./types";
 import { parseAsArrayOf } from "nuqs/server";
+import type { ReservationStatus, TimelineConfig } from "./types";
 
 export const searchParams = {
   view: {
