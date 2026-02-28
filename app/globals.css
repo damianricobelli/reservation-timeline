@@ -45,6 +45,13 @@
     --radius-2xl: calc(var(--radius) + 8px);
     --radius-3xl: calc(var(--radius) + 12px);
     --radius-4xl: calc(var(--radius) + 16px);
+
+    --color-status-pending: var(--status-pending);
+    --color-status-confirmed: var(--status-confirmed);
+    --color-status-seated: var(--status-seated);
+    --color-status-finished: var(--status-finished);
+    --color-status-no-show: var(--status-no-show);
+    --color-status-cancelled: var(--status-cancelled);
 }
 
 :root {
@@ -79,7 +86,14 @@
     --sidebar-accent: oklch(0.97 0 0);
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
+
     --sidebar-ring: oklch(0.708 0 0);
+    --status-pending: oklch(0.86 0.17 96);
+    --status-confirmed: oklch(0.64 0.19 257);
+    --status-seated: oklch(0.7 0.16 160);
+    --status-finished: oklch(0.7 0.03 257);
+    --status-no-show: oklch(0.63 0.21 25);
+    --status-cancelled: oklch(0.556 0 0);
 }
 
 .dark {
