@@ -67,3 +67,23 @@ export interface ConflictCheck {
   conflictingReservationIds: UUID[];
   reason?: "overlap" | "capacity_exceeded" | "outside_service_hours";
 }
+
+export interface ServiceHour {
+  start: string; // "HH:mm"
+  end: string; // "HH:mm"
+}
+
+export interface Restaurant {
+  id: UUID;
+  name: string;
+  timezone: string;
+  serviceHours: ServiceHour[];
+}
+
+export interface ReservationTimelineRecord {
+  date: string; // "YYYY-MM-DD"
+  restaurant: Restaurant;
+  sectors: Sector[];
+  tables: Table[];
+  reservations: Reservation[];
+}
