@@ -1,9 +1,10 @@
 import { UtensilsCrossedIcon } from "lucide-react";
 import { ViewModeSelector } from "./view-mode-selector";
+import { Container } from "./container";
 
 export const Header = () => {
   return (
-    <header className="bg-white border border-slate-200 rounded-4xl px-4 md:px-4 py-3 md:py-4 shrink-0">
+    <Container as="header" className="shrink-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="size-8 md:w-10 md:h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-sm shrink-0">
@@ -15,6 +16,6 @@ export const Header = () => {
         </div>
         <ViewModeSelector />
       </div>
-    </header>
+    </Container>
   );
 };

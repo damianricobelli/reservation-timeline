@@ -29,7 +29,7 @@ export default function RootLayout({
       <body
         className={cn(
           `${geistSans.variable} ${geistMono.variable} antialiased`,
-          "relative min-h-[calc(100vh - 4rem)] p-4 bg-slate-100",
+          "relative p-4 bg-slate-100",
         )}
       >
         <NuqsAdapter>{children}</NuqsAdapter>
