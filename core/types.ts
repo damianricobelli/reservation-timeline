@@ -3,7 +3,7 @@ type ISODateTime = string; // e.g., "2025-10-15T20:00:00-03:00"
 type Minutes = number;
 export type SlotIndex = number; // 0-based, each slot = 15min
 
-type ReservationStatus =
+export type ReservationStatus =
   | "PENDING" // Awaiting confirmation
   | "CONFIRMED" // Confirmed, not yet seated
   | "SEATED" // Currently at the table

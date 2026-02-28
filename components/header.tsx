@@ -1,5 +1,4 @@
 import { UtensilsCrossedIcon } from "lucide-react";
-import { ViewModeSelector } from "./view-mode-selector";
 import { Container } from "./container";
 
 export const Header = () => {
@@ -14,7 +13,6 @@ export const Header = () => {
             Timeline
           </h1>
         </div>
-        <ViewModeSelector />
       </div>
     </Container>
   );

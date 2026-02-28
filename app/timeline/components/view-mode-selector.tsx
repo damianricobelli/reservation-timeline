@@ -1,21 +1,17 @@
 "use client";
 
-import { useQueryState } from "nuqs";
-import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
-import { searchParams } from "@/core/search-params";
+import { Tabs, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import {
   CalendarDaysIcon,
   CalendarIcon,
   CalendarRangeIcon,
 } from "lucide-react";
-
-const { view } = searchParams;
+import { useTimelineQueryState } from "@/hooks/use-timeline-query-state";
 
 export const ViewModeSelector = () => {
-  const [viewMode, setViewMode] = useQueryState(
-    view.value,
-    view.parse.withDefault("day"),
-  );
+  const [viewMode, setViewMode] = useTimelineQueryState("view", {
+    defaultValue: "day",
+  });
   return (
     <Tabs value={viewMode} onValueChange={(value) => setViewMode(value)}>
       <TabsList>
