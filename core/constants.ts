@@ -16,3 +16,5 @@ export const MAX_DURATION_MIN = 8 * 60;
 export const ZOOM_STEPS = [50, 75, 100, 125, 150];
 export const BASE_CELL_WIDTH = 60;
 export const BLOCK_PADDING = 3;
+
+export const DEFAULT_TIMELINE_COUNT = 50;

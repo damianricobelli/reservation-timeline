@@ -7,9 +7,7 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuItem,
   DropdownMenuPortal,
-  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -17,6 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ReservationStatus } from "@/core/types";
 import { useTimelineQueryState } from "@/hooks/use-timeline-query-state";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { timelineOptions } from "@/data/timeline-options";
 
 interface StatusConfig {
   value: ReservationStatus;
@@ -36,6 +36,10 @@ const STATUS_CONFIGS: StatusConfig[] = [
 const ALL_STATUS_VALUES = STATUS_CONFIGS.map(({ value }) => value);
 
 export const FilterMenu = () => {
+  const { data } = useSuspenseQuery(timelineOptions);
+
+  console.log(data)
+
   const [status, setStatus] = useTimelineQueryState("status", {
     defaultValue: ALL_STATUS_VALUES,
   });
@@ -63,40 +67,29 @@ export const FilterMenu = () => {
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>
             <DropdownMenuSubContent sideOffset={4}>
-              {/*{tables.map((table) => {
-                const checked = selectedTableIds.includes(table.id);
-                return (
-                  <DropdownMenuItem
-                    key={table.id}
-                    // className={itemClass}
-                    // onSelect={(e) => {
-                    //   e.preventDefault();
-                    //   toggleTable(table.id);
-                    // }}
-                  >
-                    <div
-                      className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors
-                        ${checked ? "bg-slate-900 border-slate-900" : "border-slate-300"}`}
+              <DropdownMenuGroup>
+                {STATUS_CONFIGS.map(({ value, label, dot }) => {
+                  const on = status.includes(value);
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={value}
+                      checked={on}
+                      onCheckedChange={() => {
+                        setStatus((prev) => {
+                          if (prev.includes(value)) {
+                            if (prev.length === 1) return [];
+                            return prev.filter((v) => v !== value);
+                          }
+                          return [...prev, value];
+                        });
+                      }}
                     >
-                      {checked && (
-                        <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-                          <path
-                            d="M1 3.5L3 5.5L8 1"
-                            stroke="white"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      )}
-                    </div>
-                    <span>{table.name}</span>
-                    <span className="ml-auto text-xs text-slate-400 tabular-nums">
-                      {table.capacity}p
-                    </span>
-                  </DropdownMenuItem>
-                );
-              })}*/}
+                      <span className={`size-2 rounded-full shrink-0 ${dot}`} />
+                      <span>{label}</span>
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+              </DropdownMenuGroup>
             </DropdownMenuSubContent>
           </DropdownMenuPortal>
         </DropdownMenuSub>
@@ -122,7 +115,8 @@ export const FilterMenu = () => {
                       onCheckedChange={() => {
                         setStatus((prev) => {
                           if (prev.includes(value)) {
-                            if (prev.length === 1) return [];
+                            console.log(prev.length === 1);
+                            if (prev.length === 1) return ALL_STATUS_VALUES;
                             return prev.filter((v) => v !== value);
                           }
                           return [...prev, value];
