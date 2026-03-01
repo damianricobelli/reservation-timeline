@@ -5,13 +5,7 @@ import {
   type UseQueryStateReturn,
   useQueryState,
 } from "nuqs";
-
-type QueryParamDef<Name extends string, Parser> = {
-  value: Name;
-  parse: Parser;
-};
-
-type QueryParamsDefs = Record<string, QueryParamDef<string, unknown>>;
+import type { SearchParamsDefs } from "@/core/create-search-params";
 
 /**
  * Creates a typed wrapper around `useQueryState` from `nuqs`.
@@ -20,13 +14,14 @@ type QueryParamsDefs = Record<string, QueryParamDef<string, unknown>>;
  * URL query param (`value`), and infers the state type from the parser.
  *
  * `options` are forwarded as-is to `nuqs`, so all `Options` are available.
- * When `defaultValue` is provided, the returned state becomes non-nullable.
+ * When the parser has a default (eg: `parse.withDefault(...)`) or
+ * `options.defaultValue` is provided, the returned state becomes non-nullable.
  *
  * @template Defs Map of logical keys to `{ value, parse }` definitions.
  * @param defs Search param configuration object.
  * @returns A typed hook bound to the provided definitions.
  */
-export function createUseTypedQueryState<const Defs extends QueryParamsDefs>(
+export function createUseTypedQueryState<const Defs extends SearchParamsDefs>(
   defs: Defs,
 ) {
   type Key = keyof Defs;
@@ -60,17 +55,18 @@ export function createUseTypedQueryState<const Defs extends QueryParamsDefs>(
   > {
     const def = defs[key];
     const parser = def.parse as Parser<K>;
+    const { defaultValue: overrideDefault, ...nuqsOptions } = options ?? {};
 
     const queryStateOptions =
-      options?.defaultValue !== undefined
+      overrideDefault !== undefined
         ? {
             ...parser,
-            ...options,
-            defaultValue: options.defaultValue,
+            ...nuqsOptions,
+            defaultValue: overrideDefault,
           }
         : {
             ...parser,
-            ...options,
+            ...nuqsOptions,
           };
 
     return useQueryState(def.value, queryStateOptions) as UseQueryStateReturn<
