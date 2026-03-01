@@ -3,15 +3,17 @@ import {
   type Options,
   type ParserWithOptionalDefault,
   type UseQueryStateReturn,
+  type UseQueryStatesReturn,
   useQueryState,
+  useQueryStates,
 } from "nuqs";
 import type { SearchParamsDefs } from "@/core/create-search-params";
 
 /**
- * Creates a typed wrapper around `useQueryState` from `nuqs`.
+ * Creates typed wrappers around `useQueryState` and `useQueryStates` from `nuqs`.
  *
- * The returned hook receives a logical key from `defs`, maps it to the real
- * URL query param (`value`), and infers the state type from the parser.
+ * The returned hooks receive logical keys from `defs`, map them to the real
+ * URL query params (`value`), and infer state types from each parser.
  *
  * `options` are forwarded as-is to `nuqs`, so all `Options` are available.
  * When the parser has a default (eg: `parse.withDefault(...)`) or
@@ -19,7 +21,7 @@ import type { SearchParamsDefs } from "@/core/create-search-params";
  *
  * @template Defs Map of logical keys to `{ value, parse }` definitions.
  * @param defs Search param configuration object.
- * @returns A typed hook bound to the provided definitions.
+ * @returns Typed wrappers `{ useQueryState, useQueryStates }` bound to `defs`.
  */
 export function createUseTypedQueryState<const Defs extends SearchParamsDefs>(
   defs: Defs,
@@ -33,6 +35,13 @@ export function createUseTypedQueryState<const Defs extends SearchParamsDefs>(
   type Value<K extends Key> = NonNullable<Parsed<K>>;
   type ExistingDefault<K extends Key> =
     Parsed<K> extends Value<K> ? Value<K> : undefined;
+  type DefaultsFor<Keys extends readonly Key[]> = Partial<{
+    [K in Keys[number]]: Value<K>;
+  }>;
+  type KeyMapFor<Keys extends readonly Key[], D extends DefaultsFor<Keys>> = {
+    [K in Keys[number]]: Parser<K> &
+      (K extends keyof D ? { defaultValue: Value<K> } : Record<never, never>);
+  };
 
   /**
    * Typed version of `useQueryState` for a specific key in `defs`.
@@ -75,5 +84,56 @@ export function createUseTypedQueryState<const Defs extends SearchParamsDefs>(
     >;
   }
 
-  return useTypedQueryState;
+  /**
+   * Typed version of `useQueryStates` for a subset of keys in `defs`.
+   *
+   * @template Keys Logical keys from the provided definitions.
+   * @template D Optional default values per key.
+   * @param keys Logical keys to read/update in the query string.
+   * @param options Standard `nuqs` options plus optional `defaultValues`.
+   * @returns `[values, setValues]` tuple with type-safe inference per key.
+   */
+  function useTypedQueryStates<
+    const Keys extends readonly Key[],
+    D extends DefaultsFor<Keys> = Record<never, never>,
+  >(
+    keys: Keys,
+    options?: Options & { defaultValues?: D },
+  ): UseQueryStatesReturn<KeyMapFor<Keys, D>> {
+    const { defaultValues, ...nuqsOptions } = options ?? {};
+
+    const keyMap = Object.fromEntries(
+      keys.map((key) => {
+        const def = defs[key];
+        const parser = def.parse as Parser<typeof key>;
+        const overrideDefault = defaultValues?.[key];
+
+        return [
+          key,
+          overrideDefault !== undefined
+            ? {
+                ...parser,
+                defaultValue: overrideDefault,
+              }
+            : parser,
+        ];
+      }),
+    ) as KeyMapFor<Keys, D>;
+
+    const urlKeys = Object.fromEntries(
+      keys.map((key) => [key, defs[key].value]),
+    ) as {
+      [K in Keys[number]]: Defs[K]["value"];
+    };
+
+    return useQueryStates(keyMap, {
+      ...nuqsOptions,
+      urlKeys,
+    });
+  }
+
+  return {
+    useQueryState: useTypedQueryState,
+    useQueryStates: useTypedQueryStates,
+  };
 }

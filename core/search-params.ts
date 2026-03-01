@@ -1,4 +1,4 @@
-import { inferParserType, parseAsString, parseAsStringEnum } from "nuqs";
+import { type inferParserType, parseAsString, parseAsStringEnum } from "nuqs";
 import { parseAsArrayOf } from "nuqs/server";
 import { createSearchParams } from "./create-search-params";
 import type { ReservationStatus, TimelineConfig } from "./types";
