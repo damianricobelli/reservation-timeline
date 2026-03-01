@@ -38,6 +38,9 @@
       },
       "style": {
         "useImportType": "warn"
+      },
+      "correctness": {
+        "noUnusedImports": "warn"
       }
     },
     "domains": {
