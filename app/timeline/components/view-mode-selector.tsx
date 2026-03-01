@@ -5,13 +5,11 @@ import {
   CalendarIcon,
   CalendarRangeIcon,
 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTimelineQueryState } from "@/hooks/use-timeline-query-state";
-import { Tabs, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 
 export const ViewModeSelector = () => {
-  const [viewMode, setViewMode] = useTimelineQueryState("view", {
-    defaultValue: "day",
-  });
+  const [viewMode, setViewMode] = useTimelineQueryState("view");
   return (
     <Tabs value={viewMode} onValueChange={(value) => setViewMode(value)}>
       <TabsList>

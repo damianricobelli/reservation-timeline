@@ -1,7 +1,6 @@
 "use client";
 
 import { SearchIcon } from "lucide-react";
-import { useQueryState } from "nuqs";
 import {
   InputGroup,
   InputGroupAddon,
@@ -10,9 +9,7 @@ import {
 import { useTimelineQueryState } from "@/hooks/use-timeline-query-state";
 
 export const SearchInput = () => {
-  const [search, setSearch] = useTimelineQueryState("searchInput", {
-    defaultValue: "",
-  });
+  const [search, setSearch] = useTimelineQueryState("search");
 
   return (
     <InputGroup className="sm:max-w-56">

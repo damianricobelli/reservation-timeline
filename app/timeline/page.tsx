@@ -1,31 +1,21 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { Container } from "@/components/container";
 import { Header } from "@/components/header";
 import { getQueryClient } from "@/core/get-query-client";
 import { timelineOptions } from "@/data/timeline-options";
-import { FilterMenu } from "./components/filter-menu";
-import { SearchInput } from "./components/search-input";
-import { ViewModeSelector } from "./components/view-mode-selector";
+import { Timeline } from "./components/timeline";
 
 export default function Page() {
   const queryClient = getQueryClient();
   void queryClient.prefetchQuery(timelineOptions);
 
   return (
-    <main className="grid grid-rows-[auto_1fr] gap-4 h-[calc(100vh-2rem)]">
+    <main className="grid h-[calc(100vh-2rem)] grid-rows-[auto_1fr] gap-4 overflow-hidden">
       <Header />
       <HydrationBoundary state={dehydrate(queryClient)}>
-        <Container>
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="inline-flex gap-3">
-              <SearchInput />
-              <FilterMenu />
-            </div>
-            <div className="inline-flex gap-3">
-              <ViewModeSelector />
-            </div>
-          </div>
-        </Container>
+        <Timeline.Root>
+          <Timeline.Toolbar />
+          <Timeline.View />
+        </Timeline.Root>
       </HydrationBoundary>
     </main>
   );
