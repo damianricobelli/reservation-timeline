@@ -7,7 +7,7 @@ import {
   useQueryState,
   useQueryStates,
 } from "nuqs";
-import type { SearchParamsDefs } from "@/core/create-search-params";
+import type { SearchParamsDefs } from "@/core/create-typed-search-params";
 
 /**
  * Creates typed wrappers around `useQueryState` and `useQueryStates` from `nuqs`.

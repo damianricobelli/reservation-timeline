@@ -1,6 +1,6 @@
 import { type inferParserType, parseAsString, parseAsStringEnum } from "nuqs";
 import { parseAsArrayOf } from "nuqs/server";
-import { createSearchParams } from "./create-search-params";
+import { createSearchParams } from "./create-typed-search-params";
 import type { ReservationStatus, TimelineConfig } from "./types";
 
 const ALL_STATUS_VALUES: ReservationStatus[] = [
