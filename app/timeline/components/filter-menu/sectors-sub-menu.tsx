@@ -68,10 +68,6 @@ export function SectorsSubMenu({ sectors }: SectorsSubMenuProps) {
                     );
                   }}
                 >
-                  <span
-                    className="size-2 rounded-full shrink-0"
-                    style={{ backgroundColor: sector.color }}
-                  />
                   <span>{sector.name}</span>
                 </DropdownMenuCheckboxItem>
               );
