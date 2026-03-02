@@ -86,8 +86,8 @@
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
-
   --sidebar-ring: oklch(0.708 0 0);
+
   --status-pending: oklch(0.86 0.17 96);
   --status-confirmed: oklch(0.64 0.19 257);
   --status-seated: oklch(0.7 0.16 160);
@@ -136,5 +136,59 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .timeline-zoom-surface {
+    --timeline-zoom: 1;
+    --timeline-slot-width-base: 60px;
+    --timeline-slot-width: calc(
+      var(--timeline-slot-width-base) *
+      var(--timeline-zoom)
+    );
+    --timeline-grid-30m: calc(var(--timeline-slot-width) * 2);
+    --timeline-grid-60m: calc(var(--timeline-slot-width) * 4);
+  }
+
+  .timeline-grid-lines {
+    background-image: linear-gradient(
+      to right,
+      rgb(148 163 184 / 0.28) 1px,
+      transparent 1px
+    );
+    background-size: var(--timeline-grid-30m, 120px) 100%;
+    background-position: 0 0;
+  }
+
+  .timeline-hours-grid-lines {
+    background-image: linear-gradient(
+      to right,
+      rgb(148 163 184 / 0.18) 1px,
+      transparent 1px
+    );
+    background-size: var(--timeline-grid-30m, 120px) 100%;
+    background-position: 0 0;
+  }
+
+  .timeline-cancelled-stripes {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgb(255 255 255 / 0.3) 0px,
+      rgb(255 255 255 / 0.3) 8px,
+      rgb(71 85 105 / 0.08) 8px,
+      rgb(71 85 105 / 0.08) 16px
+    );
+  }
+
+  .timeline-now-indicator {
+    width: 2px;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgb(239 68 68 / 0.55) 0px,
+      rgb(239 68 68 / 0.55) 7px,
+      transparent 7px,
+      transparent 12px
+    );
   }
 }
