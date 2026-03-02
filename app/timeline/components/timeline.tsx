@@ -3,11 +3,14 @@ import { FilterMenu } from "./filter-menu";
 import { SearchInput } from "./search-input";
 import { TimelineView } from "./timeline-view";
 import { ViewModeSelector } from "./view-mode-selector";
+import { ZoomControls } from "./zoom-controls";
 
 const Root = ({ children }: { children: React.ReactNode }) => {
   return (
-    <Container className="h-full min-h-0">
-      <div className="flex h-full min-h-0 flex-col gap-4">{children}</div>
+    <Container className="h-full min-h-0 min-w-0">
+      <div className="flex h-full min-h-0 min-w-0 flex-col gap-4">
+        {children}
+      </div>
     </Container>
   );
 };
@@ -18,6 +21,7 @@ const Toolbar = () => {
       <div className="inline-flex gap-3">
         <SearchInput />
         <FilterMenu />
+        <ZoomControls />
       </div>
       <div className="inline-flex gap-3">
         <ViewModeSelector />
