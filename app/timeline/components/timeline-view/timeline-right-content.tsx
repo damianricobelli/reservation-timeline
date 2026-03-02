@@ -46,7 +46,7 @@ export function TimelineRightContent({
     >
       {typeof nowOffsetPx === "number" ? (
         <div
-          className="timeline-now-indicator pointer-events-none absolute inset-y-0 z-110"
+          className="timeline-now-indicator pointer-events-none absolute inset-y-0 z-40"
           style={{ left: toZoomScaledX(nowOffsetPx) }}
         />
       ) : null}
