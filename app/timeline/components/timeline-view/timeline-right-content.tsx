@@ -182,11 +182,14 @@ function TimelineTableRow({
         const reservationKey = getReservationRenderKey(reservation);
         const isSelected = selectedReservationIds.has(reservationKey);
         const draggable = dndApi.getReservationDraggableAttributes(reservation);
+        const resizePreview = dndApi.getResizePreview(reservation);
+        const blockReservation = resizePreview?.reservation ?? reservation;
 
         return (
           <TimelineReservationBlock
             key={reservationKey}
-            reservation={reservation}
+            reservation={blockReservation}
+            reservationKey={reservationKey}
             rowTable={table}
             rowSector={sector}
             timelineStart={timelineStart}
@@ -197,6 +200,20 @@ function TimelineTableRow({
             sectorById={sectorById}
             dragId={draggable.id}
             dragData={draggable.data}
+            resizeStartHandleProps={dndApi.getResizeHandleProps(
+              reservation,
+              "start",
+            )}
+            resizeEndHandleProps={dndApi.getResizeHandleProps(
+              reservation,
+              "end",
+            )}
+            invalid={Boolean(resizePreview && !resizePreview.valid)}
+            validationMessage={
+              resizePreview && !resizePreview.valid
+                ? getDragValidationMessage(resizePreview.reason)
+                : undefined
+            }
           />
         );
       })}

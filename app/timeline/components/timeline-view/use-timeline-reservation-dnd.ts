@@ -2,12 +2,15 @@ import type { DragDropEventHandlers } from "@dnd-kit/react";
 import dayjs, { type Dayjs } from "dayjs";
 import {
   type Dispatch,
+  type PointerEvent as ReactPointerEvent,
   type SetStateAction,
   useCallback,
   useMemo,
   useState,
 } from "react";
 import {
+  MAX_RESERVATION_MINUTES,
+  MIN_RESERVATION_MINUTES,
   SLOT_MINUTES,
   SLOT_WIDTH_PX,
   TIMELINE_DURATION_MINUTES,
@@ -51,6 +54,8 @@ type RowTarget = {
   tableId: string;
 };
 
+export type ResizeEdge = "start" | "end";
+
 /**
  * Validation failure reasons when evaluating a potential drop target.
  */
@@ -76,6 +81,20 @@ type ActiveDragState = {
   sourceReservation: SelectionReservation;
   sourceOffsetMinutes: number;
   target: RowTarget;
+  preview: TimelineDragPreview;
+};
+
+type ActiveResizeState = {
+  reservationEntityKey: string;
+  pointerId: number;
+  edge: ResizeEdge;
+  originClientX: number;
+  sourceReservation: SelectionReservation;
+  targetDateKey: string;
+  targetTable: SelectionTable;
+  targetRecord: ReservationTimelineRecord;
+  timelineStart: Dayjs;
+  timelineEnd: Dayjs;
   preview: TimelineDragPreview;
 };
 
@@ -105,6 +124,14 @@ type DroppableAttributes = {
   data: RowDroppableData;
 };
 
+export type ResizeHandleProps = {
+  onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onPointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onPointerUp: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onPointerCancel: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onLostPointerCapture: (event: ReactPointerEvent<HTMLDivElement>) => void;
+};
+
 type ProviderHandlers = Pick<
   DragDropEventHandlers,
   "onDragStart" | "onDragMove" | "onDragOver" | "onDragEnd"
@@ -123,6 +150,13 @@ export type TimelineReservationDndApi = {
     dateKey: string,
     tableId: string,
   ) => DroppableAttributes;
+  getResizeHandleProps: (
+    reservation: SelectionReservation,
+    edge: ResizeEdge,
+  ) => ResizeHandleProps;
+  getResizePreview: (
+    reservation: SelectionReservation,
+  ) => TimelineDragPreview | null;
 };
 
 /**
@@ -142,6 +176,9 @@ export function useTimelineReservationDnd({
   zoomPercent,
 }: UseTimelineReservationDndInput): TimelineReservationDndApi {
   const [activeDrag, setActiveDrag] = useState<ActiveDragState | null>(null);
+  const [activeResize, setActiveResize] = useState<ActiveResizeState | null>(
+    null,
+  );
 
   const buildPreview = useCallback(
     ({
@@ -229,6 +266,42 @@ export function useTimelineReservationDnd({
       return null;
     },
     [],
+  );
+
+  const buildResizePreview = useCallback(
+    (state: ActiveResizeState, nextClientX: number): TimelineDragPreview => {
+      const zoomScaledSlotWidth = SLOT_WIDTH_PX * (zoomPercent / 100);
+      const deltaSlots =
+        zoomScaledSlotWidth > 0
+          ? Math.round(
+              (nextClientX - state.originClientX) / zoomScaledSlotWidth,
+            )
+          : 0;
+      const deltaMinutes = deltaSlots * SLOT_MINUTES;
+      const candidate = getResizedReservation({
+        sourceReservation: state.sourceReservation,
+        edge: state.edge,
+        deltaMinutes,
+        timelineStart: state.timelineStart,
+        timelineEnd: state.timelineEnd,
+      });
+      const reason = getMoveValidationReason({
+        candidate,
+        targetDateKey: state.targetDateKey,
+        targetTable: state.targetTable,
+        targetRecord: state.targetRecord,
+        sourceReservationEntityKey: state.reservationEntityKey,
+      });
+
+      return {
+        reservation: candidate,
+        timelineStart: state.timelineStart,
+        timelineEnd: state.timelineEnd,
+        valid: !reason,
+        reason,
+      };
+    },
+    [zoomPercent],
   );
 
   const updatePreviewFromOperation = useCallback(
@@ -419,11 +492,209 @@ export function useTimelineReservationDnd({
     [],
   );
 
+  const getResizeHandleProps = useCallback(
+    (
+      reservation: SelectionReservation,
+      edge: ResizeEdge,
+    ): ResizeHandleProps => {
+      const reservationEntityKey = getReservationEntityKey(reservation);
+
+      const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (activeDrag) {
+          return;
+        }
+
+        if (activeResize) {
+          setActiveResize(null);
+        }
+
+        const targetDateKey = dayjs(reservation.startTime).format(
+          DATE_KEY_FORMAT,
+        );
+        const targetRecord = records.find(
+          (record) => record.date === targetDateKey,
+        );
+        const targetTable = tableById.get(reservation.tableId);
+
+        if (!targetRecord || !targetTable) {
+          return;
+        }
+
+        const timelineStart = getTimelineStartForDate(targetDateKey);
+        const timelineEnd = getTimelineEndForDate(targetDateKey);
+        const preview: TimelineDragPreview = {
+          reservation,
+          timelineStart,
+          timelineEnd,
+          valid: true,
+        };
+
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setActiveResize({
+          reservationEntityKey,
+          pointerId: event.pointerId,
+          edge,
+          originClientX: event.clientX,
+          sourceReservation: reservation,
+          targetDateKey,
+          targetTable,
+          targetRecord,
+          timelineStart,
+          timelineEnd,
+          preview,
+        });
+      };
+
+      const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        const { pointerId, clientX } = event;
+
+        setActiveResize((current) => {
+          if (
+            !current ||
+            current.pointerId !== pointerId ||
+            current.reservationEntityKey !== reservationEntityKey ||
+            current.edge !== edge
+          ) {
+            return current;
+          }
+
+          const nextPreview = buildResizePreview(current, clientX);
+          const previewUnchanged =
+            current.preview.reservation.startTime ===
+              nextPreview.reservation.startTime &&
+            current.preview.reservation.endTime ===
+              nextPreview.reservation.endTime &&
+            current.preview.valid === nextPreview.valid &&
+            current.preview.reason === nextPreview.reason;
+
+          if (previewUnchanged) {
+            return current;
+          }
+
+          return {
+            ...current,
+            preview: nextPreview,
+          };
+        });
+      };
+
+      const onPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const { pointerId } = event;
+        let nextReservationToCommit: SelectionReservation | null = null;
+
+        setActiveResize((current) => {
+          if (
+            !current ||
+            current.pointerId !== pointerId ||
+            current.reservationEntityKey !== reservationEntityKey ||
+            current.edge !== edge
+          ) {
+            return current;
+          }
+
+          if (current.preview.valid) {
+            nextReservationToCommit = current.preview.reservation;
+          }
+
+          return null;
+        });
+
+        if (nextReservationToCommit) {
+          const committedReservation = nextReservationToCommit;
+          setRecords((previous) =>
+            commitReservationMove(
+              previous,
+              reservationEntityKey,
+              committedReservation,
+            ),
+          );
+        }
+
+        if (event.currentTarget.hasPointerCapture(pointerId)) {
+          event.currentTarget.releasePointerCapture(pointerId);
+        }
+      };
+
+      const onPointerCancel = (event: ReactPointerEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const { pointerId } = event;
+
+        setActiveResize((current) => {
+          if (!current || current.pointerId !== pointerId) {
+            return current;
+          }
+
+          return null;
+        });
+
+        if (event.currentTarget.hasPointerCapture(pointerId)) {
+          event.currentTarget.releasePointerCapture(pointerId);
+        }
+      };
+
+      const onLostPointerCapture = (
+        event: ReactPointerEvent<HTMLDivElement>,
+      ) => {
+        const { pointerId } = event;
+
+        setActiveResize((current) => {
+          if (!current || current.pointerId !== pointerId) {
+            return current;
+          }
+
+          return null;
+        });
+      };
+
+      return {
+        onPointerDown,
+        onPointerMove,
+        onPointerUp,
+        onPointerCancel,
+        onLostPointerCapture,
+      };
+    },
+    [
+      activeDrag,
+      activeResize,
+      buildResizePreview,
+      records,
+      setRecords,
+      tableById,
+    ],
+  );
+
+  const getResizePreview = useCallback(
+    (reservation: SelectionReservation): TimelineDragPreview | null => {
+      if (!activeResize) {
+        return null;
+      }
+
+      const reservationEntityKey = getReservationEntityKey(reservation);
+
+      if (activeResize.reservationEntityKey !== reservationEntityKey) {
+        return null;
+      }
+
+      return activeResize.preview;
+    },
+    [activeResize],
+  );
+
   return {
     providerHandlers,
     preview: activeDrag?.preview ?? null,
     getReservationDraggableAttributes,
     getRowDroppableAttributes,
+    getResizeHandleProps,
+    getResizePreview,
   };
 }
 
@@ -661,6 +932,83 @@ function parseServiceHourDate(dateKey: string, time: string) {
  */
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+/**
+ * Clamps a Dayjs value between min and max.
+ */
+function clampDayjs(value: Dayjs, min: Dayjs, max: Dayjs) {
+  if (value.isBefore(min)) {
+    return min;
+  }
+
+  if (value.isAfter(max)) {
+    return max;
+  }
+
+  return value;
+}
+
+/**
+ * Computes a slot-snapped resized reservation candidate on the requested edge.
+ */
+function getResizedReservation({
+  sourceReservation,
+  edge,
+  deltaMinutes,
+  timelineStart,
+  timelineEnd,
+}: {
+  sourceReservation: SelectionReservation;
+  edge: ResizeEdge;
+  deltaMinutes: number;
+  timelineStart: Dayjs;
+  timelineEnd: Dayjs;
+}): SelectionReservation {
+  const sourceStart = dayjs(sourceReservation.startTime);
+  const sourceEnd = dayjs(sourceReservation.endTime);
+
+  if (edge === "start") {
+    const proposedStart = sourceStart.add(deltaMinutes, "minute");
+    const minStart = maxDayjs(
+      timelineStart,
+      sourceEnd.subtract(MAX_RESERVATION_MINUTES, "minute"),
+    );
+    const maxStart = sourceEnd.subtract(MIN_RESERVATION_MINUTES, "minute");
+    const clampedStart = clampDayjs(proposedStart, minStart, maxStart);
+    const durationMinutes = sourceEnd.diff(clampedStart, "minute");
+
+    return {
+      ...sourceReservation,
+      startTime: clampedStart.format(),
+      endTime: sourceEnd.format(),
+      durationMinutes,
+    };
+  }
+
+  const proposedEnd = sourceEnd.add(deltaMinutes, "minute");
+  const minEnd = sourceStart.add(MIN_RESERVATION_MINUTES, "minute");
+  const maxEnd = minDayjs(
+    timelineEnd,
+    sourceStart.add(MAX_RESERVATION_MINUTES, "minute"),
+  );
+  const clampedEnd = clampDayjs(proposedEnd, minEnd, maxEnd);
+  const durationMinutes = clampedEnd.diff(sourceStart, "minute");
+
+  return {
+    ...sourceReservation,
+    startTime: sourceStart.format(),
+    endTime: clampedEnd.format(),
+    durationMinutes,
+  };
+}
+
+function minDayjs(a: Dayjs, b: Dayjs) {
+  return a.isBefore(b) ? a : b;
+}
+
+function maxDayjs(a: Dayjs, b: Dayjs) {
+  return a.isAfter(b) ? a : b;
 }
 
 /**
