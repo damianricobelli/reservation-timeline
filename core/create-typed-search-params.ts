@@ -12,7 +12,7 @@ type QueryParamDef<Name extends string, Parser> = {
 
 export type SearchParamsDefs = Record<string, QueryParamDef<string, unknown>>;
 
-type SearchParamsFromInputs<Defs extends readonly SearchParamInput[]> = {
+type TypedSearchParamsFromInputs<Defs extends readonly SearchParamInput[]> = {
   [Def in Defs[number] as Def["key"]]: Def extends {
     key: infer Key extends string;
     parse: infer Parser;
@@ -23,13 +23,13 @@ type SearchParamsFromInputs<Defs extends readonly SearchParamInput[]> = {
     : never;
 };
 
-export function createSearchParams<
+export function createTypedSearchParams<
   const Defs extends readonly SearchParamInput[],
->(...defs: Defs): SearchParamsFromInputs<Defs> {
+>(...defs: Defs): TypedSearchParamsFromInputs<Defs> {
   const entries = defs.map((def) => [
     def.key,
     { value: def.key, parse: def.parse },
   ]);
 
-  return Object.fromEntries(entries) as SearchParamsFromInputs<Defs>;
+  return Object.fromEntries(entries);
 }

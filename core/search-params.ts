@@ -7,7 +7,7 @@ import {
 } from "nuqs";
 import { parseAsArrayOf } from "nuqs/server";
 import { DEFAULT_ZOOM_PERCENT, ZOOM_STEPS } from "./constants";
-import { createSearchParams } from "./create-typed-search-params";
+import { createTypedSearchParams } from "./create-typed-search-params";
 import type { ReservationStatus, TimelineConfig } from "./types";
 
 const ALL_STATUS_VALUES: ReservationStatus[] = [
@@ -19,7 +19,7 @@ const ALL_STATUS_VALUES: ReservationStatus[] = [
   "CANCELLED",
 ];
 
-export const searchParams = createSearchParams(
+export const searchParams = createTypedSearchParams(
   {
     key: "view",
     parse: parseAsStringEnum<TimelineConfig["viewMode"]>([
