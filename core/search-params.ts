@@ -1,5 +1,11 @@
-import { type inferParserType, parseAsString, parseAsStringEnum } from "nuqs";
+import {
+  type inferParserType,
+  parseAsNumberLiteral,
+  parseAsString,
+  parseAsStringEnum,
+} from "nuqs";
 import { parseAsArrayOf } from "nuqs/server";
+import { DEFAULT_ZOOM_PERCENT, ZOOM_STEPS } from "./constants";
 import { createSearchParams } from "./create-typed-search-params";
 import type { ReservationStatus, TimelineConfig } from "./types";
 
@@ -45,6 +51,10 @@ export const searchParams = createSearchParams(
   {
     key: "tables",
     parse: parseAsArrayOf(parseAsString).withDefault([]),
+  },
+  {
+    key: "zoom",
+    parse: parseAsNumberLiteral(ZOOM_STEPS).withDefault(DEFAULT_ZOOM_PERCENT),
   },
 );
 
