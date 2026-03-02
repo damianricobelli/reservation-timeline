@@ -19,8 +19,10 @@ export const FilterMenu = () => {
   const { data } = useSuspenseQuery(timelineOptions);
 
   const [view] = useTimelineQueryState("view");
+  const [date] = useTimelineQueryState("date");
 
   const { sectors, tables } = getSeedSelectionForView(data, view, {
+    baseDate: date,
     fallbackToSeedDate: true,
   });
 

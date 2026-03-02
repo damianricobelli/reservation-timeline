@@ -21,6 +21,7 @@ export const TimelineView = () => {
   const { data } = useSuspenseQuery(timelineOptions);
 
   const [view] = useTimelineQueryState("view");
+  const [date] = useTimelineQueryState("date");
   const [search] = useTimelineQueryState("search");
   const [status] = useTimelineQueryState("status");
   const [selectedSectorIds] = useTimelineQueryState("sectors");
@@ -30,6 +31,7 @@ export const TimelineView = () => {
   const isControlHold = useKeyHold("Control");
 
   const selection = getSeedSelectionForView(data, view, {
+    baseDate: date,
     fallbackToSeedDate: true,
     search,
     statuses: status,

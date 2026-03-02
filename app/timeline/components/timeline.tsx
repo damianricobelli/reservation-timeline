@@ -1,4 +1,5 @@
 import { Container } from "@/components/container";
+import { DateControls } from "./date-controls";
 import { FilterMenu } from "./filter-menu";
 import { SearchInput } from "./search-input";
 import { TimelineView } from "./timeline-view";
@@ -23,7 +24,8 @@ const Toolbar = () => {
         <FilterMenu />
         <ZoomControls />
       </div>
-      <div className="inline-flex gap-3">
+      <div className="inline-flex items-center gap-3">
+        <DateControls />
         <ViewModeSelector />
       </div>
     </div>

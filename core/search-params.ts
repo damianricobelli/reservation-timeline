@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import {
   type inferParserType,
   parseAsNumberLiteral,
@@ -30,6 +31,10 @@ export const searchParams = createSearchParams(
   {
     key: "search",
     parse: parseAsString.withDefault(""),
+  },
+  {
+    key: "date",
+    parse: parseAsString.withDefault(dayjs().format("YYYY-MM-DD")),
   },
   {
     key: "status",
