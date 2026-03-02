@@ -32,6 +32,9 @@ export default function RootLayout({
           "relative p-4 bg-slate-100",
         )}
       >
+        {process.env.NODE_ENV === "development" && (
+          <script src="https://unpkg.com/react-scan/dist/auto.global.js" crossOrigin="anonymous" />
+        )}
         <Providers>{children}</Providers>
       </body>
     </html>
