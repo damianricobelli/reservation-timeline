@@ -128,6 +128,12 @@ export function TimelineReservationBlock({
         aria-selected={isSelected}
       >
         <ReservationBlockContent reservation={reservation} />
+        <div className="group/resize-edge absolute inset-y-0 left-0 z-20 w-3 cursor-ew-resize">
+          <span className="pointer-events-none absolute inset-y-2 left-0 w-0.5 rounded-full bg-slate-400 opacity-0 transition-opacity duration-150 group-hover/resize-edge:opacity-100" />
+        </div>
+        <div className="group/resize-edge absolute inset-y-0 right-0 z-20 w-3 cursor-ew-resize">
+          <span className="pointer-events-none absolute inset-y-2 right-0 w-0.5 rounded-full bg-slate-400 opacity-0 transition-opacity duration-150 group-hover/resize-edge:opacity-100" />
+        </div>
       </TooltipTrigger>
 
       <TooltipContent>
