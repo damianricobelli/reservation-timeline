@@ -1,3 +1,4 @@
+import { DragOverlay, useDroppable } from "@dnd-kit/react";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import {
   GRID_WIDTH_CSS,
@@ -6,14 +7,22 @@ import {
 } from "@/core/constants";
 import { useTimelineZoom } from "@/hooks/use-timeline-zoom";
 import { TimelineHoursRow } from "./timeline-hours-row";
-import { TimelineReservationBlock } from "./timeline-reservation-block";
+import {
+  TimelineReservationBlock,
+  TimelineReservationOverlayBlock,
+} from "./timeline-reservation-block";
 import type {
+  SelectionReservation,
   SelectionSector,
   SelectionTable,
   TimelineCssVars,
   TimelineDayModel,
 } from "./types";
 import { useTimelineNowIndicator } from "./use-timeline-now-indicator";
+import type {
+  MoveValidationReason,
+  TimelineReservationDndApi,
+} from "./use-timeline-reservation-dnd";
 import { getReservationRenderKey, toZoomScaledX } from "./utils";
 
 type TimelineRightContentProps = {
@@ -25,6 +34,21 @@ type TimelineRightContentProps = {
   onReservationClick: (reservationKey: string) => void;
   isSectorOpen: (sectorKey: string) => boolean;
   onSectorOpenChange: (sectorKey: string, open: boolean) => void;
+  dndApi: TimelineReservationDndApi;
+};
+
+type TimelineTableRowProps = {
+  dateKey: string;
+  sector: SelectionSector;
+  table: SelectionTable;
+  reservations: SelectionReservation[];
+  timelineStart: TimelineDayModel["timelineStart"];
+  timelineEnd: TimelineDayModel["timelineEnd"];
+  selectedReservationIds: Set<string>;
+  tableById: Map<string, SelectionTable>;
+  sectorById: Map<string, SelectionSector>;
+  onReservationClick: (reservationKey: string) => void;
+  dndApi: TimelineReservationDndApi;
 };
 
 export function TimelineRightContent({
@@ -36,6 +60,7 @@ export function TimelineRightContent({
   onReservationClick,
   isSectorOpen,
   onSectorOpenChange,
+  dndApi,
 }: TimelineRightContentProps) {
   const { zoomPercent } = useTimelineZoom();
   const nowOffsetPx = useTimelineNowIndicator();
@@ -85,33 +110,20 @@ export function TimelineRightContent({
                   <CollapsibleContent>
                     <div>
                       {tableRows.map(({ table, reservations }) => (
-                        <div
+                        <TimelineTableRow
                           key={`${day.dateKey}-${table.id}`}
-                          className="timeline-grid-lines relative border-r border-b border-slate-200"
-                          style={{ height: ROW_HEIGHT_PX }}
-                        >
-                          {reservations.map((reservation) => {
-                            const reservationKey =
-                              getReservationRenderKey(reservation);
-                            const isSelected =
-                              selectedReservationIds.has(reservationKey);
-
-                            return (
-                              <TimelineReservationBlock
-                                key={reservationKey}
-                                reservation={reservation}
-                                rowTable={table}
-                                rowSector={sector}
-                                timelineStart={day.timelineStart}
-                                timelineEnd={day.timelineEnd}
-                                isSelected={isSelected}
-                                onClick={onReservationClick}
-                                tableById={tableById}
-                                sectorById={sectorById}
-                              />
-                            );
-                          })}
-                        </div>
+                          dateKey={day.dateKey}
+                          sector={sector}
+                          table={table}
+                          reservations={reservations}
+                          timelineStart={day.timelineStart}
+                          timelineEnd={day.timelineEnd}
+                          selectedReservationIds={selectedReservationIds}
+                          tableById={tableById}
+                          sectorById={sectorById}
+                          onReservationClick={onReservationClick}
+                          dndApi={dndApi}
+                        />
                       ))}
                     </div>
                   </CollapsibleContent>
@@ -121,6 +133,88 @@ export function TimelineRightContent({
           </div>
         </section>
       ))}
+
+      <DragOverlay dropAnimation={null}>
+        {dndApi.preview ? (
+          <div className="z-50">
+            <TimelineReservationOverlayBlock
+              reservation={dndApi.preview.reservation}
+              timelineStart={dndApi.preview.timelineStart}
+              timelineEnd={dndApi.preview.timelineEnd}
+              invalid={!dndApi.preview.valid}
+              validationMessage={getDragValidationMessage(
+                dndApi.preview.reason,
+              )}
+            />
+          </div>
+        ) : null}
+      </DragOverlay>
     </div>
   );
+}
+
+function TimelineTableRow({
+  dateKey,
+  sector,
+  table,
+  reservations,
+  timelineStart,
+  timelineEnd,
+  selectedReservationIds,
+  tableById,
+  sectorById,
+  onReservationClick,
+  dndApi,
+}: TimelineTableRowProps) {
+  const droppable = dndApi.getRowDroppableAttributes(dateKey, table.id);
+  const { ref } = useDroppable({
+    id: droppable.id,
+    data: droppable.data,
+  });
+
+  return (
+    <div
+      ref={ref}
+      className="timeline-grid-lines relative border-r border-b border-slate-200"
+      style={{ height: ROW_HEIGHT_PX }}
+    >
+      {reservations.map((reservation) => {
+        const reservationKey = getReservationRenderKey(reservation);
+        const isSelected = selectedReservationIds.has(reservationKey);
+        const draggable = dndApi.getReservationDraggableAttributes(reservation);
+
+        return (
+          <TimelineReservationBlock
+            key={reservationKey}
+            reservation={reservation}
+            rowTable={table}
+            rowSector={sector}
+            timelineStart={timelineStart}
+            timelineEnd={timelineEnd}
+            isSelected={isSelected}
+            onClick={onReservationClick}
+            tableById={tableById}
+            sectorById={sectorById}
+            dragId={draggable.id}
+            dragData={draggable.data}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function getDragValidationMessage(reason: MoveValidationReason | undefined) {
+  switch (reason) {
+    case "overlap":
+      return "Cannot drop here: overlaps another reservation.";
+    case "capacity_exceeded":
+      return "Cannot drop here: party size exceeds table capacity.";
+    case "outside_service_hours":
+      return "Cannot drop here: outside service hours.";
+    case "outside_timeline":
+      return "Cannot drop here: outside timeline hours.";
+    default:
+      return undefined;
+  }
 }

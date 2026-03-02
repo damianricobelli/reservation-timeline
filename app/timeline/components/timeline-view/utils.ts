@@ -38,7 +38,6 @@ export const SLOT_LABELS = Array.from({ length: TOTAL_SLOTS }, (_, index) =>
   formatTimeLabel(index),
 );
 
-// labels/formatting
 export function formatTimeRange(reservation: SelectionReservation) {
   return `${dayjs(reservation.startTime).format("HH:mm")}-${dayjs(reservation.endTime).format("HH:mm")}`;
 }
@@ -66,6 +65,10 @@ export function getStatusLabel(status: SelectionReservation["status"]) {
 
 export function getReservationRenderKey(reservation: SelectionReservation) {
   return `${reservation.id}-${reservation.tableId}-${reservation.startTime}`;
+}
+
+export function getReservationEntityKey(reservation: SelectionReservation) {
+  return `${reservation.id}-${reservation.createdAt}-${reservation.customer.phone}`;
 }
 
 export function getTablesBySector(tables: SelectionTable[]): TablesBySector {

@@ -1,3 +1,4 @@
+import { useDraggable } from "@dnd-kit/react";
 import dayjs, { type Dayjs } from "dayjs";
 import { Clock3Icon, UsersIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ import type {
   SelectionSector,
   SelectionTable,
 } from "./types";
+import type { ReservationDraggableData } from "./use-timeline-reservation-dnd";
 import {
   formatPriorityLabel,
   formatTimeRange,
@@ -37,6 +39,28 @@ type TimelineReservationBlockProps = {
   onClick: (reservationKey: string) => void;
   tableById: Map<string, SelectionTable>;
   sectorById: Map<string, SelectionSector>;
+  dragId: string;
+  dragData: ReservationDraggableData;
+};
+
+type TimelineReservationOverlayBlockProps = {
+  reservation: SelectionReservation;
+  timelineStart: Dayjs;
+  timelineEnd: Dayjs;
+  invalid?: boolean;
+  validationMessage?: string;
+};
+
+type ReservationBlockContentProps = {
+  reservation: SelectionReservation;
+};
+
+type BlockClassInput = {
+  reservation: SelectionReservation;
+  isSelected?: boolean;
+  isGhost?: boolean;
+  invalid?: boolean;
+  overlay?: boolean;
 };
 
 export function TimelineReservationBlock({
@@ -49,7 +73,13 @@ export function TimelineReservationBlock({
   onClick,
   tableById,
   sectorById,
+  dragId,
+  dragData,
 }: TimelineReservationBlockProps) {
+  const { ref, handleRef, isDragSource } = useDraggable({
+    id: dragId,
+    data: dragData,
+  });
   const reservationStart = dayjs(reservation.startTime);
   const reservationEnd = dayjs(reservation.endTime);
   const blockLayout = getReservationBlockLayout({
@@ -60,9 +90,7 @@ export function TimelineReservationBlock({
     insetX: RESERVATION_INSET_X,
   });
 
-  if (blockLayout.hidden) {
-    return null;
-  }
+  if (blockLayout.hidden) return null;
 
   const reservationKey = getReservationRenderKey(reservation);
   const statusStyle = STATUS_BLOCK_STYLE[reservation.status];
@@ -74,81 +102,32 @@ export function TimelineReservationBlock({
   return (
     <Tooltip key={reservationKey}>
       <TooltipTrigger
+        ref={(element) => {
+          ref(element);
+          handleRef(element);
+        }}
         type="button"
         data-reservation-block="true"
         data-selected={isSelected}
-        className={cn(
-          "absolute z-10 overflow-hidden rounded-lg border text-left transition",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/30",
-          "data-selected:outline-none data-selected:ring-1 data-selected:ring-slate-950",
-          reservation.status === "CANCELLED" && "timeline-cancelled-stripes",
-          statusStyle.blockClassName,
-        )}
+        className={getBlockClassName({
+          reservation,
+          isSelected,
+          isGhost: isDragSource,
+        })}
         style={{
           left: toZoomScaledX(blockLayout.left),
           top: RESERVATION_INSET_Y,
           width: toZoomScaledX(blockLayout.width),
           height: ROW_HEIGHT_PX - RESERVATION_INSET_Y * 2,
         }}
-        onClick={() => onClick(reservationKey)}
+        onClick={() => {
+          if (isDragSource) return;
+          onClick(reservationKey);
+        }}
         aria-pressed={isSelected}
         aria-selected={isSelected}
       >
-        <div className="relative flex h-full w-full flex-col justify-center gap-0.5 pl-3.5 pr-2">
-          <span
-            className={cn(
-              "pointer-events-none absolute inset-y-1.5 left-1.5 w-1 rounded-full",
-              statusStyle.accentClassName,
-            )}
-          />
-
-          <div className="flex items-center justify-between gap-1.5">
-            <p className="truncate text-xs font-semibold leading-tight">
-              {reservation.customer.name}
-            </p>
-
-            <span className="inline-flex shrink-0 items-center gap-1">
-              <Badge
-                variant="outline"
-                className={cn(
-                  "h-4 rounded-md px-1 text-[9px] font-semibold uppercase tracking-wide",
-                  statusStyle.statusBadgeClassName,
-                )}
-              >
-                {statusLabel}
-              </Badge>
-
-              {priorityLabel ? (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "h-4 rounded-md px-1 text-[9px] font-semibold tracking-wide",
-                    statusStyle.priorityBadgeClassName,
-                  )}
-                >
-                  {priorityLabel}
-                </Badge>
-              ) : null}
-            </span>
-          </div>
-
-          <div
-            className={cn(
-              "flex items-center gap-2 text-[11px] leading-none tabular-nums",
-              statusStyle.metaClassName,
-            )}
-          >
-            <span className="inline-flex items-center gap-1 truncate">
-              <UsersIcon className="size-3 shrink-0" />
-              {reservation.partySize}
-            </span>
-
-            <span className="inline-flex items-center gap-1 truncate">
-              <Clock3Icon className="size-3 shrink-0" />
-              {formatTimeRange(reservation)}
-            </span>
-          </div>
-        </div>
+        <ReservationBlockContent reservation={reservation} />
       </TooltipTrigger>
 
       <TooltipContent>
@@ -212,5 +191,142 @@ export function TimelineReservationBlock({
         ) : null}
       </TooltipContent>
     </Tooltip>
+  );
+}
+
+export function TimelineReservationOverlayBlock({
+  reservation,
+  timelineStart,
+  timelineEnd,
+  invalid = false,
+  validationMessage,
+}: TimelineReservationOverlayBlockProps) {
+  const reservationStart = dayjs(reservation.startTime);
+  const reservationEnd = dayjs(reservation.endTime);
+  const blockLayout = getReservationBlockLayout({
+    reservationStart,
+    reservationEnd,
+    timelineStart,
+    timelineEnd,
+    insetX: RESERVATION_INSET_X,
+  });
+
+  if (blockLayout.hidden) {
+    return null;
+  }
+
+  return (
+    <div className="relative">
+      <div
+        className={getBlockClassName({
+          reservation,
+          invalid,
+          overlay: true,
+        })}
+        style={{
+          width: toZoomScaledX(blockLayout.width),
+          height: ROW_HEIGHT_PX - RESERVATION_INSET_Y * 2,
+        }}
+      >
+        <ReservationBlockContent reservation={reservation} />
+      </div>
+
+      {invalid && validationMessage ? (
+        <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md border border-rose-400 bg-rose-50 px-2 py-1 text-[11px] font-medium text-rose-700 shadow-sm">
+          {validationMessage}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ReservationBlockContent({
+  reservation,
+}: ReservationBlockContentProps) {
+  const statusStyle = STATUS_BLOCK_STYLE[reservation.status];
+  const statusLabel = getStatusLabel(reservation.status);
+  const priorityLabel = formatPriorityLabel(reservation.priority);
+
+  return (
+    <div className="relative flex h-full w-full flex-col justify-center gap-0.5 pl-3.5 pr-2">
+      <span
+        className={cn(
+          "pointer-events-none absolute inset-y-1.5 left-1.5 w-1 rounded-full",
+          statusStyle.accentClassName,
+        )}
+      />
+
+      <div className="flex items-center justify-between gap-1.5">
+        <p className="truncate text-xs font-semibold leading-tight">
+          {reservation.customer.name}
+        </p>
+
+        <span className="inline-flex shrink-0 items-center gap-1">
+          <Badge
+            variant="outline"
+            className={cn(
+              "h-4 rounded-md px-1 text-[9px] font-semibold uppercase tracking-wide",
+              statusStyle.statusBadgeClassName,
+            )}
+          >
+            {statusLabel}
+          </Badge>
+
+          {priorityLabel ? (
+            <Badge
+              variant="outline"
+              className={cn(
+                "h-4 rounded-md px-1 text-[9px] font-semibold tracking-wide",
+                statusStyle.priorityBadgeClassName,
+              )}
+            >
+              {priorityLabel}
+            </Badge>
+          ) : null}
+        </span>
+      </div>
+
+      <div
+        className={cn(
+          "flex items-center gap-2 text-[11px] leading-none tabular-nums",
+          statusStyle.metaClassName,
+        )}
+      >
+        <span className="inline-flex items-center gap-1 truncate">
+          <UsersIcon className="size-3 shrink-0" />
+          {reservation.partySize}
+        </span>
+
+        <span className="inline-flex items-center gap-1 truncate">
+          <Clock3Icon className="size-3 shrink-0" />
+          {formatTimeRange(reservation)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function getBlockClassName({
+  reservation,
+  isSelected = false,
+  isGhost = false,
+  invalid = false,
+  overlay = false,
+}: BlockClassInput) {
+  const statusStyle = STATUS_BLOCK_STYLE[reservation.status];
+
+  return cn(
+    "overflow-hidden rounded-lg border text-left transition",
+    !overlay && "absolute z-10",
+    overlay && "pointer-events-none shadow-lg",
+    !overlay &&
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/30",
+    !overlay &&
+      isSelected &&
+      "outline-none ring-1 ring-slate-950 data-selected:outline-none data-selected:ring-1 data-selected:ring-slate-950",
+    isGhost && "opacity-35 saturate-50 ring-1 ring-slate-900/20",
+    invalid && "border-rose-500/85 ring-2 ring-rose-500/30",
+    reservation.status === "CANCELLED" && "timeline-cancelled-stripes",
+    statusStyle.blockClassName,
   );
 }
