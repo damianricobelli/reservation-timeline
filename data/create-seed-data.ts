@@ -1,12 +1,15 @@
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { SLOT_MINUTES } from "@/core/constants";
+import { getServiceHourWindows } from "@/core/service-hours";
 import type {
   Reservation,
   ReservationPriority,
   ReservationTimelineRecord,
   Restaurant,
   Sector,
+  ServiceHour,
   Table,
 } from "@/core/types";
 import {
@@ -117,16 +120,28 @@ function buildDate(index: number) {
   return dayjs().add(index, "day").format(DATE_KEY_FORMAT);
 }
 
-function randomStart(date: string, timezoneName: string) {
-  const isLunch = Math.random() < 0.45;
-  const baseHour = isLunch ? randomInt(12, 15) : randomInt(20, 23);
-  const minute = randomInt(0, 3) * 15;
-  return dayjs
-    .tz(date, timezoneName)
-    .hour(baseHour)
-    .minute(minute)
-    .second(0)
-    .millisecond(0);
+function randomStartWithinServiceHours(
+  date: string,
+  timezoneName: string,
+  serviceHours: ServiceHour[],
+  durationMinutes: number,
+) {
+  const windows = getServiceHourWindows(date, serviceHours, timezoneName);
+  const viableWindows = windows.filter(
+    ({ start, end }) => end.diff(start, "minute") >= durationMinutes,
+  );
+
+  if (viableWindows.length === 0) {
+    return null;
+  }
+
+  const chosenWindow = randomItem(viableWindows);
+  const maxStartOffsetMinutes =
+    chosenWindow.end.diff(chosenWindow.start, "minute") - durationMinutes;
+  const maxStartOffsetSlots = Math.floor(maxStartOffsetMinutes / SLOT_MINUTES);
+  const startOffsetSlots = randomInt(0, maxStartOffsetSlots);
+
+  return chosenWindow.start.add(startOffsetSlots * SLOT_MINUTES, "minute");
 }
 
 function hasOverlap(
@@ -144,13 +159,24 @@ function hasOverlap(
 function buildReservation(
   date: string,
   timezoneName: string,
+  serviceHours: ServiceHour[],
   table: Table,
   index: number,
   existingForTable: Reservation[],
 ): Reservation | null {
   for (let attempt = 0; attempt < 8; attempt += 1) {
-    const start = randomStart(date, timezoneName);
     const durationMinutes = randomItem([60, 75, 90, 105, 120, 135]);
+    const start = randomStartWithinServiceHours(
+      date,
+      timezoneName,
+      serviceHours,
+      durationMinutes,
+    );
+
+    if (start === null) {
+      return null;
+    }
+
     const end = start.add(durationMinutes, "minute");
 
     if (hasOverlap(start, end, existingForTable)) {
@@ -195,6 +221,7 @@ function buildReservation(
 function buildReservations(
   date: string,
   timezoneName: string,
+  serviceHours: ServiceHour[],
   tables: Table[],
 ) {
   const reservationsByTable = new Map<string, Reservation[]>();
@@ -211,6 +238,7 @@ function buildReservations(
     const reservation = buildReservation(
       date,
       timezoneName,
+      serviceHours,
       table,
       reservationCounter,
       existingForTable,
@@ -239,7 +267,12 @@ export function createSeedData(count: number): ReservationTimelineRecord[] {
     const restaurant = buildRestaurant(index);
     const sectors = buildSectors();
     const tables = buildTables(sectors);
-    const reservations = buildReservations(date, restaurant.timezone, tables);
+    const reservations = buildReservations(
+      date,
+      restaurant.timezone,
+      restaurant.serviceHours,
+      tables,
+    );
 
     return {
       date,
