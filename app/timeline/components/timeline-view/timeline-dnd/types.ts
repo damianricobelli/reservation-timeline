@@ -5,7 +5,12 @@ import type {
   PointerEvent as ReactPointerEvent,
   SetStateAction,
 } from "react";
-import type { ReservationTimelineRecord } from "@/core/types";
+import type {
+  DateKey,
+  MoveValidationReason,
+  ReservationTimelineRecord,
+  TableId,
+} from "@/core/types";
 import type { SelectionReservation, SelectionTable } from "../types";
 import type { RESERVATION_DRAG_KIND, ROW_DROP_KIND } from "./constants";
 
@@ -22,31 +27,22 @@ export type ReservationDraggableData = {
  */
 export type RowDroppableData = {
   kind: typeof ROW_DROP_KIND;
-  dateKey: string;
-  tableId: string;
+  dateKey: DateKey;
+  tableId: TableId;
 };
 
 /**
  * Logical target row used during drag operation preview and commit.
  */
 export type RowTarget = {
-  dateKey: string;
-  tableId: string;
+  dateKey: DateKey;
+  tableId: TableId;
 };
 
 /**
  * Resize edge identifier for reservation duration editing.
  */
 export type ResizeEdge = "start" | "end";
-
-/**
- * Validation failure reasons when evaluating candidate placement.
- */
-export type MoveValidationReason =
-  | "overlap"
-  | "capacity_exceeded"
-  | "outside_service_hours"
-  | "outside_timeline";
 
 /**
  * Preview model used by both drag move and resize interactions.
@@ -79,7 +75,7 @@ export type ActiveResizeState = {
   edge: ResizeEdge;
   originClientX: number;
   sourceReservation: SelectionReservation;
-  targetDateKey: string;
+  targetDateKey: DateKey;
   targetTable: SelectionTable;
   targetRecord: ReservationTimelineRecord;
   timelineStart: Dayjs;
@@ -154,8 +150,8 @@ export type TimelineReservationDndApi = {
     reservation: SelectionReservation,
   ) => DraggableAttributes;
   getRowDroppableAttributes: (
-    dateKey: string,
-    tableId: string,
+    dateKey: DateKey,
+    tableId: TableId,
   ) => DroppableAttributes;
   getResizeHandleProps: (
     reservation: SelectionReservation,

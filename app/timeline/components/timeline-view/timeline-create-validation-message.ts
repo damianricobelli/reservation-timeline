@@ -1,4 +1,4 @@
-import type { MoveValidationReason } from "./timeline-dnd/types";
+import type { MoveValidationReason } from "@/core/types";
 
 export type TimelineCreateValidationReason =
   | MoveValidationReason

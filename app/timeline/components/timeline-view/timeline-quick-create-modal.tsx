@@ -37,6 +37,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  RESERVATION_PRIORITY_LABELS,
+  RESERVATION_PRIORITY_VALUES,
+  RESERVATION_STATUS_LABELS,
+  RESERVATION_STATUS_VALUES,
+} from "@/core/types";
 import type {
   TimelineCreateDraft,
   TimelineQuickCreateSubmitInput,
@@ -52,29 +58,22 @@ type TimelineQuickCreateModalProps = {
   ) => TimelineQuickCreateSubmitResult;
 };
 
-const STATUS_LABELS: Record<TimelineQuickCreateSubmitInput["status"], string> =
-  {
-    PENDING: "Pending",
-    CONFIRMED: "Confirmed",
-    SEATED: "Seated",
-    FINISHED: "Finished",
-    NO_SHOW: "No Show",
-    CANCELLED: "Cancelled",
-  };
-
-const PRIORITY_LABELS: Record<
-  TimelineQuickCreateSubmitInput["priority"],
-  string
-> = {
-  STANDARD: "Standard",
-  VIP: "VIP",
-  LARGE_GROUP: "Large Group",
-};
-
 const INITIAL_ACTION_STATE: QuickCreateReservationActionState = {
   status: "idle",
   fieldErrors: {},
 };
+
+function isStatusValue(
+  value: string,
+): value is TimelineQuickCreateSubmitInput["status"] {
+  return RESERVATION_STATUS_VALUES.some((status) => status === value);
+}
+
+function isPriorityValue(
+  value: string,
+): value is TimelineQuickCreateSubmitInput["priority"] {
+  return RESERVATION_PRIORITY_VALUES.some((priority) => priority === value);
+}
 
 /**
  * Local uncontrolled quick-create form using `useActionState` with a typed form action.
@@ -232,7 +231,7 @@ function TimelineQuickCreateModalForm({
           <Field data-invalid={Boolean(state.fieldErrors.status)}>
             <FieldLabel htmlFor="quick-create-status">Status</FieldLabel>
             <FieldContent>
-              <Select name="status" defaultValue="CONFIRMED">
+              <Select name="status" defaultValue={draft.reservation.status}>
                 <SelectTrigger
                   id="quick-create-status"
                   aria-invalid={Boolean(state.fieldErrors.status)}
@@ -240,21 +239,18 @@ function TimelineQuickCreateModalForm({
                 >
                   <SelectValue placeholder="Select status">
                     {(value) =>
-                      typeof value === "string"
-                        ? (STATUS_LABELS[
-                            value as TimelineQuickCreateSubmitInput["status"]
-                          ] ?? value)
+                      typeof value === "string" && isStatusValue(value)
+                        ? RESERVATION_STATUS_LABELS[value]
                         : "Select status"
                     }
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="CONFIRMED">Confirmed</SelectItem>
-                  <SelectItem value="SEATED">Seated</SelectItem>
-                  <SelectItem value="FINISHED">Finished</SelectItem>
-                  <SelectItem value="NO_SHOW">No Show</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  {RESERVATION_STATUS_VALUES.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {RESERVATION_STATUS_LABELS[status]}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FieldError>{state.fieldErrors.status}</FieldError>
@@ -264,7 +260,7 @@ function TimelineQuickCreateModalForm({
           <Field data-invalid={Boolean(state.fieldErrors.priority)}>
             <FieldLabel htmlFor="quick-create-priority">Priority</FieldLabel>
             <FieldContent>
-              <Select name="priority" defaultValue="STANDARD">
+              <Select name="priority" defaultValue={draft.reservation.priority}>
                 <SelectTrigger
                   id="quick-create-priority"
                   aria-invalid={Boolean(state.fieldErrors.priority)}
@@ -272,18 +268,18 @@ function TimelineQuickCreateModalForm({
                 >
                   <SelectValue placeholder="Select priority">
                     {(value) =>
-                      typeof value === "string"
-                        ? (PRIORITY_LABELS[
-                            value as TimelineQuickCreateSubmitInput["priority"]
-                          ] ?? value)
+                      typeof value === "string" && isPriorityValue(value)
+                        ? RESERVATION_PRIORITY_LABELS[value]
                         : "Select priority"
                     }
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="STANDARD">Standard</SelectItem>
-                  <SelectItem value="VIP">VIP</SelectItem>
-                  <SelectItem value="LARGE_GROUP">Large group</SelectItem>
+                  {RESERVATION_PRIORITY_VALUES.map((priority) => (
+                    <SelectItem key={priority} value={priority}>
+                      {RESERVATION_PRIORITY_LABELS[priority]}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FieldError>{state.fieldErrors.priority}</FieldError>

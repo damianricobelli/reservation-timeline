@@ -3,10 +3,16 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type {
   Reservation,
+  ReservationPriority,
   ReservationTimelineRecord,
   Restaurant,
   Sector,
   Table,
+} from "@/core/types";
+import {
+  DATE_KEY_FORMAT,
+  RESERVATION_SOURCE_VALUES,
+  RESERVATION_STATUS_VALUES,
 } from "@/core/types";
 
 dayjs.extend(utc);
@@ -61,7 +67,6 @@ const LAST_NAMES = [
   "Martinez",
 ];
 
-const SOURCES = ["web", "phone", "walkin", "app"] as const;
 const NOTES = [
   "Birthday celebration",
   "Anniversary dinner",
@@ -109,7 +114,7 @@ function buildTables(sectors: Sector[]): Table[] {
 }
 
 function buildDate(index: number) {
-  return dayjs().add(index, "day").format("YYYY-MM-DD");
+  return dayjs().add(index, "day").format(DATE_KEY_FORMAT);
 }
 
 function randomStart(date: string, timezoneName: string) {
@@ -155,18 +160,10 @@ function buildReservation(
     const partySize = randomInt(table.capacity.min, table.capacity.max);
     const firstName = randomItem(FIRST_NAMES);
     const lastName = randomItem(LAST_NAMES);
-    const status: Reservation["status"] = randomItem([
-      "PENDING",
-      "CONFIRMED",
-      "SEATED",
-      "FINISHED",
-      "NO_SHOW",
-      "CANCELLED",
-    ]);
-    const priority: Reservation["priority"] =
-      partySize >= 6
-        ? randomItem(["VIP", "LARGE_GROUP"])
-        : randomItem(["STANDARD", "VIP"]);
+    const status: Reservation["status"] = randomItem(RESERVATION_STATUS_VALUES);
+    const priorityPool: readonly ReservationPriority[] =
+      partySize >= 6 ? ["VIP", "LARGE_GROUP"] : ["STANDARD", "VIP"];
+    const priority: Reservation["priority"] = randomItem(priorityPool);
 
     const createdAt = start.subtract(randomInt(1, 72), "hour");
     const updatedAt = createdAt.add(randomInt(0, 8), "hour");
@@ -186,7 +183,7 @@ function buildReservation(
       status,
       priority,
       notes: Math.random() < 0.25 ? randomItem(NOTES) : undefined,
-      source: randomItem(SOURCES),
+      source: randomItem(RESERVATION_SOURCE_VALUES),
       createdAt: createdAt.format("YYYY-MM-DDTHH:mm:ssZ"),
       updatedAt: updatedAt.format("YYYY-MM-DDTHH:mm:ssZ"),
     };

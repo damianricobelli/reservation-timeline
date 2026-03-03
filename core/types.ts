@@ -1,7 +1,17 @@
-type UUID = string;
-type ISODateTime = string; // e.g., "2025-10-15T20:00:00-03:00"
-type Minutes = number;
+export type UUID = string;
+export type ISODateTime = string; // e.g., "2025-10-15T20:00:00-03:00"
+export type DateKey = string; // e.g., "2025-10-15"
+export type Minutes = number;
 export type SlotIndex = number; // 0-based, each slot = 15min
+
+export type RestaurantId = UUID;
+export type SectorId = UUID;
+export type TableId = UUID;
+export type ReservationId = UUID;
+
+export const DATE_KEY_FORMAT = "YYYY-MM-DD" as const;
+export const TIMELINE_VIEW_MODE_VALUES = ["day", "3-day", "week"] as const;
+export type TimelineViewMode = (typeof TIMELINE_VIEW_MODE_VALUES)[number];
 
 export const RESERVATION_STATUS_VALUES = [
   "PENDING",
@@ -21,17 +31,51 @@ export const RESERVATION_PRIORITY_VALUES = [
 ] as const;
 
 export type ReservationPriority = (typeof RESERVATION_PRIORITY_VALUES)[number];
+export const RESERVATION_SOURCE_VALUES = [
+  "phone",
+  "web",
+  "walkin",
+  "app",
+] as const;
+export type ReservationSource = (typeof RESERVATION_SOURCE_VALUES)[number];
+
+export const MOVE_VALIDATION_REASON_VALUES = [
+  "overlap",
+  "capacity_exceeded",
+  "outside_service_hours",
+  "outside_timeline",
+] as const;
+export type MoveValidationReason =
+  (typeof MOVE_VALIDATION_REASON_VALUES)[number];
+
+export type ConflictReason = Exclude<MoveValidationReason, "outside_timeline">;
+
+export const RESERVATION_STATUS_LABELS: Record<ReservationStatus, string> = {
+  PENDING: "Pending",
+  CONFIRMED: "Confirmed",
+  SEATED: "Seated",
+  FINISHED: "Finished",
+  NO_SHOW: "No Show",
+  CANCELLED: "Cancelled",
+};
+
+export const RESERVATION_PRIORITY_LABELS: Record<ReservationPriority, string> =
+  {
+    STANDARD: "Standard",
+    VIP: "VIP",
+    LARGE_GROUP: "Large Group",
+  };
 
 export interface Sector {
-  id: UUID;
+  id: SectorId;
   name: string;
   color: string;
   sortOrder: number;
 }
 
 export interface Table {
-  id: UUID;
-  sectorId: UUID;
+  id: TableId;
+  sectorId: SectorId;
   name: string;
   capacity: {
     min: number;
@@ -48,8 +92,8 @@ interface Customer {
 }
 
 export interface Reservation {
-  id: UUID;
-  tableId: UUID;
+  id: ReservationId;
+  tableId: TableId;
   customer: Customer;
   partySize: number;
   startTime: ISODateTime;
@@ -58,23 +102,23 @@ export interface Reservation {
   status: ReservationStatus;
   priority: ReservationPriority;
   notes?: string;
-  source?: string; // 'phone', 'web', 'walkin', 'app'
+  source?: ReservationSource;
   createdAt: ISODateTime;
   updatedAt: ISODateTime;
 }
 
 export interface TimelineConfig {
-  date: string; // "2025-10-15"
+  date: DateKey;
   startHour: number; // 11
   endHour: number; // 24 (or 0 for midnight)
   slotMinutes: Minutes; // 15
-  viewMode: "day" | "3-day" | "week";
+  viewMode: TimelineViewMode;
 }
 
 export interface ConflictCheck {
   hasConflict: boolean;
-  conflictingReservationIds: UUID[];
-  reason?: "overlap" | "capacity_exceeded" | "outside_service_hours";
+  conflictingReservationIds: ReservationId[];
+  reason?: ConflictReason;
 }
 
 export interface ServiceHour {
@@ -83,14 +127,14 @@ export interface ServiceHour {
 }
 
 export interface Restaurant {
-  id: UUID;
+  id: RestaurantId;
   name: string;
   timezone: string;
   serviceHours: ServiceHour[];
 }
 
 export interface ReservationTimelineRecord {
-  date: string; // "YYYY-MM-DD"
+  date: DateKey;
   restaurant: Restaurant;
   sectors: Sector[];
   tables: Table[];

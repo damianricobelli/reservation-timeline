@@ -44,8 +44,8 @@ import {
   getTimelineStartForDate,
 } from "./utils";
 
+export type { MoveValidationReason } from "@/core/types";
 export type {
-  MoveValidationReason,
   ReservationDraggableData,
   ResizeEdge,
   ResizeHandleProps,
@@ -305,7 +305,10 @@ export function useTimelineReservationDnd({
   );
 
   const getRowDroppableAttributes = useCallback(
-    (dateKey: string, tableId: string): DroppableAttributes => {
+    (
+      dateKey: RowTarget["dateKey"],
+      tableId: RowTarget["tableId"],
+    ): DroppableAttributes => {
       return {
         id: getRowDroppableId(dateKey, tableId),
         data: {

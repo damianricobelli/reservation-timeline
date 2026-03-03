@@ -1,5 +1,6 @@
 import { useDroppable } from "@dnd-kit/react";
 import { ROW_HEIGHT_PX } from "@/core/constants";
+import type { DateKey } from "@/core/types";
 import { getDragValidationMessage } from "./drag-validation-message";
 import { TimelineCreatePreviewBlock } from "./timeline-create-preview-block";
 import { getCreateValidationMessage } from "./timeline-create-validation-message";
@@ -7,7 +8,9 @@ import { TimelineReservationBlock } from "./timeline-reservation-block";
 import type {
   SelectionReservation,
   SelectionSector,
+  SelectionSectorId,
   SelectionTable,
+  SelectionTableId,
   TimelineDayModel,
 } from "./types";
 import type { TimelineReservationCreateApi } from "./use-timeline-reservation-create";
@@ -15,15 +18,15 @@ import type { TimelineReservationDndApi } from "./use-timeline-reservation-dnd";
 import { getReservationRenderKey } from "./utils";
 
 type TimelineTableRowProps = {
-  dateKey: string;
+  dateKey: DateKey;
   sector: SelectionSector;
   table: SelectionTable;
   reservations: SelectionReservation[];
   timelineStart: TimelineDayModel["timelineStart"];
   timelineEnd: TimelineDayModel["timelineEnd"];
   selectedReservationIds: Set<string>;
-  tableById: Map<string, SelectionTable>;
-  sectorById: Map<string, SelectionSector>;
+  tableById: Map<SelectionTableId, SelectionTable>;
+  sectorById: Map<SelectionSectorId, SelectionSector>;
   onReservationClick: (reservationKey: string) => void;
   dndApi: TimelineReservationDndApi;
   createApi: TimelineReservationCreateApi;

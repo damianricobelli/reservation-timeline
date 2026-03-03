@@ -1,4 +1,4 @@
-import type { MoveValidationReason } from "./use-timeline-reservation-dnd";
+import type { MoveValidationReason } from "@/core/types";
 
 /**
  * Maps validation reasons to user-facing copy for drag and resize feedback.

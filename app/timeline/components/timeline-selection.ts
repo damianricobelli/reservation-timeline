@@ -1,15 +1,19 @@
 import dayjs, { type Dayjs } from "dayjs";
-import type {
-  Reservation,
-  ReservationStatus,
-  ReservationTimelineRecord,
-  Sector,
-  Table,
-  TimelineConfig,
+import {
+  DATE_KEY_FORMAT,
+  type DateKey,
+  type Reservation,
+  type ReservationId,
+  type ReservationStatus,
+  type ReservationTimelineRecord,
+  type Sector,
+  type SectorId,
+  type Table,
+  type TableId,
+  type TimelineViewMode,
 } from "@/core/types";
 
-type ViewMode = TimelineConfig["viewMode"];
-const DATE_FORMAT = "YYYY-MM-DD";
+type ViewMode = TimelineViewMode;
 
 const VIEW_DAYS: Record<ViewMode, number> = {
   day: 1,
@@ -18,25 +22,25 @@ const VIEW_DAYS: Record<ViewMode, number> = {
 };
 
 export interface SeedSelectionFilters {
-  baseDate?: string | Date | Dayjs;
+  baseDate?: DateKey | Date | Dayjs;
   fallbackToSeedDate?: boolean;
-  sectorIds?: string[];
-  tableIds?: string[];
+  sectorIds?: SectorId[];
+  tableIds?: TableId[];
   statuses?: ReservationStatus[];
-  reservationIds?: string[];
+  reservationIds?: ReservationId[];
   search?: string;
 }
 
 export interface SeedSelectionResult {
-  referenceDate: string;
-  dateKeys: string[];
+  referenceDate: DateKey;
+  dateKeys: DateKey[];
   records: ReservationTimelineRecord[];
   sectors: Sector[];
   tables: Table[];
   reservations: Reservation[];
 }
 
-function parseDateInput(dateInput: string | Date | Dayjs | undefined) {
+function parseDateInput(dateInput: DateKey | Date | Dayjs | undefined) {
   if (!dateInput) return null;
   const parsed = dayjs(dateInput);
   if (!parsed.isValid()) return null;
@@ -61,7 +65,7 @@ function resolveReferenceDate(
     return explicitDate;
   }
 
-  const todayKey = today.format(DATE_FORMAT);
+  const todayKey = today.format(DATE_KEY_FORMAT);
   const hasToday = records.some((record) => record.date === todayKey);
 
   if (hasToday || filters.fallbackToSeedDate === false) {
@@ -94,8 +98,8 @@ function sortTables(tables: Table[], sectors: Sector[]) {
   });
 }
 
-function toRecordMap<T extends { id: string }>(rows: T[]) {
-  const map = new Map<string, T>();
+function toRecordMap<Id extends string, T extends { id: Id }>(rows: T[]) {
+  const map = new Map<Id, T>();
 
   rows.forEach((row) => {
     if (!map.has(row.id)) {
@@ -106,9 +110,9 @@ function toRecordMap<T extends { id: string }>(rows: T[]) {
   return map;
 }
 
-function normalizeFilterIds(
-  selectedIds: string[] | undefined,
-  allIds: string[],
+function normalizeFilterIds<Id extends string>(
+  selectedIds: Id[] | undefined,
+  allIds: Id[],
 ) {
   if (!selectedIds || selectedIds.length === 0 || allIds.length === 0) {
     return [];
@@ -126,13 +130,13 @@ function normalizeFilterIds(
 
 export function getViewDateKeys(
   viewMode: ViewMode,
-  baseDate: string | Date | Dayjs = dayjs(),
+  baseDate: DateKey | Date | Dayjs = dayjs(),
 ) {
   const anchor = parseDateInput(baseDate) ?? dayjs().startOf("day");
   const days = VIEW_DAYS[viewMode];
 
   return Array.from({ length: days }, (_, offset) =>
-    anchor.add(offset, "day").format(DATE_FORMAT),
+    anchor.add(offset, "day").format(DATE_KEY_FORMAT),
   );
 }
 
@@ -146,7 +150,7 @@ export function getTimelineRecordsForView(
   const dateSet = new Set(dateKeys);
 
   return {
-    referenceDate: referenceDate.format(DATE_FORMAT),
+    referenceDate: referenceDate.format(DATE_KEY_FORMAT),
     dateKeys,
     records: records
       .filter((record) => dateSet.has(record.date))

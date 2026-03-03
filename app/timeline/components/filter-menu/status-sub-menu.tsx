@@ -6,27 +6,29 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { ReservationStatus } from "@/core/types";
+import {
+  RESERVATION_STATUS_LABELS,
+  RESERVATION_STATUS_VALUES,
+  type ReservationStatus,
+} from "@/core/types";
 import { useTimelineQueryState } from "@/hooks/use-timeline-query-state";
 
-interface StatusConfig {
-  value: ReservationStatus;
-  label: string;
-  dot: string;
-}
+const STATUS_DOT_CLASS_BY_VALUE: Record<ReservationStatus, string> = {
+  PENDING: "bg-amber-400",
+  CONFIRMED: "bg-blue-500",
+  SEATED: "bg-emerald-500",
+  FINISHED: "bg-slate-400",
+  NO_SHOW: "bg-rose-500",
+  CANCELLED: "bg-slate-300",
+};
 
-const STATUS_CONFIGS: StatusConfig[] = [
-  { value: "PENDING", label: "Pending", dot: "bg-amber-400" },
-  { value: "CONFIRMED", label: "Confirmed", dot: "bg-blue-500" },
-  { value: "SEATED", label: "Seated", dot: "bg-emerald-500" },
-  { value: "FINISHED", label: "Finished", dot: "bg-slate-400" },
-  { value: "NO_SHOW", label: "No Show", dot: "bg-rose-500" },
-  { value: "CANCELLED", label: "Cancelled", dot: "bg-slate-300" },
-];
+const STATUS_CONFIGS = RESERVATION_STATUS_VALUES.map((value) => ({
+  value,
+  label: RESERVATION_STATUS_LABELS[value],
+  dot: STATUS_DOT_CLASS_BY_VALUE[value],
+}));
 
-const ALL_STATUS_VALUES = STATUS_CONFIGS.map(
-  ({ value }) => value,
-) as ReservationStatus[];
+const ALL_STATUS_VALUES: ReservationStatus[] = [...RESERVATION_STATUS_VALUES];
 
 export function StatusSubMenu() {
   const [status, setStatus] = useTimelineQueryState("status");

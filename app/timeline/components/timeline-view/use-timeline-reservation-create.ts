@@ -19,7 +19,7 @@ import {
   TIMELINE_START_HOUR,
   TOTAL_SLOTS,
 } from "@/core/constants";
-import type { ReservationTimelineRecord } from "@/core/types";
+import type { DateKey, ReservationTimelineRecord, TableId } from "@/core/types";
 import {
   getCreateValidationMessage,
   type TimelineCreateValidationReason,
@@ -37,14 +37,14 @@ const AUTO_SCROLL_EDGE_THRESHOLD_PX = 48;
 const AUTO_SCROLL_STEP_PX = 12;
 
 type TimelineCreateCommitDraft = {
-  dateKey: string;
+  dateKey: DateKey;
   table: SelectionTable;
   targetRecord: ReservationTimelineRecord;
   reservation: SelectionReservation;
 };
 
 type ActiveCreateState = {
-  dateKey: string;
+  dateKey: DateKey;
   table: SelectionTable;
   targetRecord: ReservationTimelineRecord;
   timelineStart: Dayjs;
@@ -58,7 +58,7 @@ type ActiveCreateState = {
 };
 
 export type TimelineCreateDraft = {
-  dateKey: string;
+  dateKey: DateKey;
   table: SelectionTable;
   reservation: SelectionReservation;
 };
@@ -67,7 +67,7 @@ export type TimelineCreatePreview = {
   reservation: SelectionReservation;
   timelineStart: Dayjs;
   timelineEnd: Dayjs;
-  dateKey: string;
+  dateKey: DateKey;
   table: SelectionTable;
   valid: boolean;
   reason?: TimelineCreateValidationReason;
@@ -101,7 +101,7 @@ export type RowCreatePointerHandlers = {
 };
 
 type GetRowCreatePointerHandlersInput = {
-  dateKey: string;
+  dateKey: DateKey;
   table: SelectionTable;
 };
 
@@ -117,8 +117,8 @@ export type TimelineReservationCreateApi = {
     input: GetRowCreatePointerHandlersInput,
   ) => RowCreatePointerHandlers;
   getRowCreatePreview: (
-    dateKey: string,
-    tableId: string,
+    dateKey: DateKey,
+    tableId: TableId,
   ) => TimelineCreatePreview | null;
   draft: TimelineCreateDraft | null;
   closeDraft: () => void;
@@ -613,7 +613,7 @@ export function useTimelineReservationCreate({
   );
 
   const getRowCreatePreview = useCallback(
-    (dateKey: string, tableId: string): TimelineCreatePreview | null => {
+    (dateKey: DateKey, tableId: TableId): TimelineCreatePreview | null => {
       if (!activeCreate) {
         return null;
       }
@@ -668,7 +668,7 @@ function buildCreatePreview({
   originClientX: number;
   nextClientX: number;
   sourceOffsetMinutes: number;
-  dateKey: string;
+  dateKey: DateKey;
   table: SelectionTable;
   targetRecord: ReservationTimelineRecord;
   timelineStart: Dayjs;
@@ -731,7 +731,7 @@ function getCreateValidationReason({
   targetRecord,
 }: {
   candidate: SelectionReservation;
-  targetDateKey: string;
+  targetDateKey: DateKey;
   targetTable: SelectionTable;
   targetRecord: ReservationTimelineRecord;
 }): TimelineCreateValidationReason | undefined {
@@ -759,7 +759,7 @@ function buildPreviewReservation({
   end,
   durationMinutes,
 }: {
-  tableId: string;
+  tableId: TableId;
   partySize: number;
   start: Dayjs;
   end: Dayjs;
@@ -790,7 +790,7 @@ function getTimelineStartForDate({
   dateKey,
   timezoneName,
 }: {
-  dateKey: string;
+  dateKey: DateKey;
   timezoneName: string;
 }) {
   return dayjs

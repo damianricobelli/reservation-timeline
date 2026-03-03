@@ -1,12 +1,15 @@
-export function areAllItemsSelected(selectedIds: string[], totalItems: number) {
+export function areAllItemsSelected(
+  selectedIds: readonly string[],
+  totalItems: number,
+) {
   if (totalItems === 0) return false;
   return selectedIds.length === 0 || selectedIds.length === totalItems;
 }
 
-export function normalizeSelectionForQuery(
-  selectedIds: string[],
-  allIds: string[],
-): string[] {
+export function normalizeSelectionForQuery<Id extends string>(
+  selectedIds: readonly Id[],
+  allIds: readonly Id[],
+): Id[] {
   if (allIds.length === 0) {
     return [];
   }
@@ -25,10 +28,10 @@ export function normalizeSelectionForQuery(
   return normalized;
 }
 
-export function nextItemSelection(
-  selectedIds: string[],
-  allIds: string[],
-  itemId: string,
+export function nextItemSelection<Id extends string>(
+  selectedIds: readonly Id[],
+  allIds: readonly Id[],
+  itemId: Id,
   nextChecked: boolean,
 ) {
   const allSelected = areAllItemsSelected(selectedIds, allIds.length);

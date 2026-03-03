@@ -1,5 +1,6 @@
 import type { Dayjs } from "dayjs";
 import type { CSSProperties } from "react";
+import type { DateKey } from "@/core/types";
 import type { SeedSelectionResult } from "../timeline-selection";
 
 export type SelectionTable = SeedSelectionResult["tables"][number];
@@ -10,7 +11,7 @@ export type SelectionTableId = SelectionTable["id"];
 
 export type ReservationsByTable = Map<SelectionTableId, SelectionReservation[]>;
 
-export type ReservationsByDateAndTable = Map<string, ReservationsByTable>;
+export type ReservationsByDateAndTable = Map<DateKey, ReservationsByTable>;
 export type TablesBySector = Map<
   SelectionSectorId,
   SeedSelectionResult["tables"]
@@ -28,7 +29,7 @@ export type TimelineSectorModel = {
 };
 
 export type TimelineDayModel = {
-  dateKey: string;
+  dateKey: DateKey;
   dayLabel: string;
   reservationCount: number;
   timelineStart: Dayjs;

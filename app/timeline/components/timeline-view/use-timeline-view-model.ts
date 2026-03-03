@@ -3,7 +3,9 @@ import { useMemo } from "react";
 import type { SeedSelectionResult } from "../timeline-selection";
 import type {
   SelectionSector,
+  SelectionSectorId,
   SelectionTable,
+  SelectionTableId,
   TimelineDayModel,
 } from "./types";
 import {
@@ -19,8 +21,8 @@ import {
  */
 type TimelineViewModel = {
   days: TimelineDayModel[];
-  tableById: Map<string, SelectionTable>;
-  sectorById: Map<string, SelectionSector>;
+  tableById: Map<SelectionTableId, SelectionTable>;
+  sectorById: Map<SelectionSectorId, SelectionSector>;
 };
 
 /**

@@ -5,10 +5,14 @@ import {
   TIMELINE_DURATION_MINUTES,
   TIMELINE_START_HOUR,
 } from "@/core/constants";
-import type { ReservationTimelineRecord, ServiceHour } from "@/core/types";
+import type {
+  DateKey,
+  MoveValidationReason,
+  ReservationTimelineRecord,
+  ServiceHour,
+} from "@/core/types";
 import type { SelectionReservation, SelectionTable } from "../types";
 import { getReservationEntityKey } from "../utils";
-import type { MoveValidationReason } from "./types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -30,7 +34,7 @@ export function getMoveValidationReason({
   sourceReservationEntityKey,
 }: {
   candidate: SelectionReservation;
-  targetDateKey: string;
+  targetDateKey: DateKey;
   targetTable: SelectionTable;
   targetRecord: ReservationTimelineRecord;
   sourceReservationEntityKey: string;
@@ -104,7 +108,7 @@ export function getMoveValidationReason({
 export function isWithinServiceHours(
   startTime: Dayjs,
   endTime: Dayjs,
-  dateKey: string,
+  dateKey: DateKey,
   serviceHours: ServiceHour[],
   timezoneName: string,
 ) {
@@ -135,7 +139,7 @@ export function isWithinServiceHours(
  * Parses "HH:mm" into a Dayjs timestamp for the provided date in the given timezone.
  */
 export function parseServiceHourDate(
-  dateKey: string,
+  dateKey: DateKey,
   time: string,
   timezoneName: string,
 ) {

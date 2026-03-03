@@ -4,7 +4,9 @@ import { TimelineQuickCreateModal } from "./timeline-quick-create-modal";
 import { TimelineRightDaySection } from "./timeline-right-day-section";
 import type {
   SelectionSector,
+  SelectionSectorId,
   SelectionTable,
+  SelectionTableId,
   TimelineCssVars,
   TimelineDayModel,
 } from "./types";
@@ -16,8 +18,8 @@ import { toZoomScaledX } from "./utils";
 type TimelineRightContentProps = {
   days: TimelineDayModel[];
   selectedReservationIds: Set<string>;
-  tableById: Map<string, SelectionTable>;
-  sectorById: Map<string, SelectionSector>;
+  tableById: Map<SelectionTableId, SelectionTable>;
+  sectorById: Map<SelectionSectorId, SelectionSector>;
   timelineCssVars: TimelineCssVars;
   onReservationClick: (reservationKey: string) => void;
   isSectorOpen: (sectorKey: string) => boolean;

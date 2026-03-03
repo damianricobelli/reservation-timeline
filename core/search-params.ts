@@ -6,41 +6,28 @@ import {
   createTypedQueryState,
   type QueryValue as QueryValueFromParams,
 } from "./create-typed-query-state";
-import type { ReservationStatus, TimelineConfig } from "./types";
+import {
+  DATE_KEY_FORMAT,
+  RESERVATION_STATUS_VALUES,
+  type ReservationStatus,
+  TIMELINE_VIEW_MODE_VALUES,
+} from "./types";
 
-const ALL_STATUS_VALUES: ReservationStatus[] = [
-  "PENDING",
-  "CONFIRMED",
-  "SEATED",
-  "FINISHED",
-  "NO_SHOW",
-  "CANCELLED",
-];
+const ALL_STATUS_VALUES: ReservationStatus[] = [...RESERVATION_STATUS_VALUES];
 
 export const timelineQueryState = createTypedQueryState({
   view: {
-    parse: parseAsStringEnum<TimelineConfig["viewMode"]>([
-      "day",
-      "3-day",
-      "week",
-    ]).withDefault("day"),
+    parse: parseAsStringEnum([...TIMELINE_VIEW_MODE_VALUES]).withDefault("day"),
   },
   search: {
     parse: parseAsString.withDefault(""),
   },
   date: {
-    parse: parseAsString.withDefault(dayjs().format("YYYY-MM-DD")),
+    parse: parseAsString.withDefault(dayjs().format(DATE_KEY_FORMAT)),
   },
   status: {
     parse: parseAsArrayOf(
-      parseAsStringEnum<ReservationStatus>([
-        "PENDING",
-        "CONFIRMED",
-        "SEATED",
-        "FINISHED",
-        "NO_SHOW",
-        "CANCELLED",
-      ]),
+      parseAsStringEnum<ReservationStatus>([...RESERVATION_STATUS_VALUES]),
     ).withDefault(ALL_STATUS_VALUES),
   },
   sectors: {

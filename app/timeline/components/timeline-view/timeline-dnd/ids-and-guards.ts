@@ -11,7 +11,10 @@ export function getReservationDraggableId(reservationEntityKey: string) {
 /**
  * Builds unique droppable id for dnd-kit registry.
  */
-export function getRowDroppableId(dateKey: string, tableId: string) {
+export function getRowDroppableId(
+  dateKey: RowDroppableData["dateKey"],
+  tableId: RowDroppableData["tableId"],
+) {
   return `row:${dateKey}:${tableId}`;
 }
 

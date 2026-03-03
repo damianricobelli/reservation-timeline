@@ -1,5 +1,9 @@
 import dayjs from "dayjs";
-import type { Reservation, ReservationTimelineRecord } from "@/core/types";
+import type {
+  DateKey,
+  Reservation,
+  ReservationTimelineRecord,
+} from "@/core/types";
 import type { SelectionReservation } from "../types";
 import { getReservationEntityKey } from "../utils";
 import { DATE_KEY_FORMAT } from "./constants";
@@ -118,7 +122,7 @@ export function commitReservationMove(
  */
 export function appendReservation(
   records: ReservationTimelineRecord[],
-  targetDateKey: string,
+  targetDateKey: DateKey,
   reservation: SelectionReservation,
 ) {
   return records.map((record) => {

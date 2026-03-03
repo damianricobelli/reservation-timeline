@@ -6,6 +6,11 @@ import {
   TIMELINE_START_HOUR,
   TOTAL_SLOTS,
 } from "@/core/constants";
+import {
+  type DateKey,
+  RESERVATION_PRIORITY_LABELS,
+  RESERVATION_STATUS_LABELS,
+} from "@/core/types";
 import type {
   ReservationsByDateAndTable,
   ReservationsByTable,
@@ -15,24 +20,6 @@ import type {
   SelectionTableId,
   TablesBySector,
 } from "./types";
-
-const PRIORITY_LABEL_BY_PRIORITY: Record<
-  SelectionReservation["priority"],
-  string | null
-> = {
-  STANDARD: null,
-  VIP: "VIP",
-  LARGE_GROUP: "Large Group",
-};
-
-const STATUS_LABEL_BY_STATUS: Record<SelectionReservation["status"], string> = {
-  PENDING: "Pending",
-  CONFIRMED: "Confirmed",
-  SEATED: "Seated",
-  FINISHED: "Finished",
-  NO_SHOW: "No Show",
-  CANCELLED: "Cancelled",
-};
 
 export const SLOT_LABELS = Array.from({ length: TOTAL_SLOTS }, (_, index) =>
   formatTimeLabel(index),
@@ -56,11 +43,15 @@ export function formatTimeLabel(slotIndex: number) {
 export function formatPriorityLabel(
   priority: SelectionReservation["priority"],
 ) {
-  return PRIORITY_LABEL_BY_PRIORITY[priority];
+  if (priority === "STANDARD") {
+    return null;
+  }
+
+  return RESERVATION_PRIORITY_LABELS[priority];
 }
 
 export function getStatusLabel(status: SelectionReservation["status"]) {
-  return STATUS_LABEL_BY_STATUS[status];
+  return RESERVATION_STATUS_LABELS[status];
 }
 
 export function getReservationRenderKey(reservation: SelectionReservation) {
@@ -83,7 +74,7 @@ export function getTablesBySector(tables: SelectionTable[]): TablesBySector {
   return map;
 }
 
-export function getTimelineStartForDate(dateKey: string) {
+export function getTimelineStartForDate(dateKey: DateKey) {
   return dayjs(dateKey)
     .hour(TIMELINE_START_HOUR)
     .minute(0)
@@ -91,7 +82,7 @@ export function getTimelineStartForDate(dateKey: string) {
     .millisecond(0);
 }
 
-export function getTimelineEndForDate(dateKey: string) {
+export function getTimelineEndForDate(dateKey: DateKey) {
   return getTimelineStartForDate(dateKey).add(
     TIMELINE_DURATION_MINUTES,
     "minute",
@@ -183,9 +174,9 @@ export function toZoomScaledX(px: number) {
 
 export function buildReservationsByDateAndTable(
   reservations: SelectionReservation[],
-  dateKeys: string[],
+  dateKeys: DateKey[],
 ): ReservationsByDateAndTable {
-  const result = new Map<string, ReservationsByTable>();
+  const result = new Map<DateKey, ReservationsByTable>();
 
   const windowsByDate = new Map(
     dateKeys.map((dateKey) => [

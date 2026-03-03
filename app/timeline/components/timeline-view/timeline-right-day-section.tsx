@@ -4,7 +4,9 @@ import { TimelineHoursRow } from "./timeline-hours-row";
 import { TimelineTableRow } from "./timeline-table-row";
 import type {
   SelectionSector,
+  SelectionSectorId,
   SelectionTable,
+  SelectionTableId,
   TimelineDayModel,
 } from "./types";
 import type { TimelineReservationCreateApi } from "./use-timeline-reservation-create";
@@ -14,8 +16,8 @@ type TimelineRightDaySectionProps = {
   day: TimelineDayModel;
   zoomPercent: number;
   selectedReservationIds: Set<string>;
-  tableById: Map<string, SelectionTable>;
-  sectorById: Map<string, SelectionSector>;
+  tableById: Map<SelectionTableId, SelectionTable>;
+  sectorById: Map<SelectionSectorId, SelectionSector>;
   onReservationClick: (reservationKey: string) => void;
   isSectorOpen: (sectorKey: string) => boolean;
   onSectorOpenChange: (sectorKey: string, open: boolean) => void;

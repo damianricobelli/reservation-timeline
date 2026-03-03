@@ -17,7 +17,9 @@ import { cn } from "@/lib/utils";
 import type {
   SelectionReservation,
   SelectionSector,
+  SelectionSectorId,
   SelectionTable,
+  SelectionTableId,
 } from "./types";
 import type {
   ReservationDraggableData,
@@ -40,8 +42,8 @@ type TimelineReservationBlockProps = {
   timelineEnd: Dayjs;
   isSelected: boolean;
   onClick: (reservationKey: string) => void;
-  tableById: Map<string, SelectionTable>;
-  sectorById: Map<string, SelectionSector>;
+  tableById: Map<SelectionTableId, SelectionTable>;
+  sectorById: Map<SelectionSectorId, SelectionSector>;
   dragId: string;
   dragData: ReservationDraggableData;
   resizeStartHandleProps: ResizeHandleProps;
