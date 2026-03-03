@@ -1,7 +1,4 @@
-import { createUseTypedQueryState } from "@/core/create-use-typed-query-state";
-import { searchParams } from "@/core/search-params";
-
-const timelineQueryState = createUseTypedQueryState(searchParams);
+import { timelineQueryState } from "@/core/search-params";
 
 export const useTimelineQueryState = timelineQueryState.useQueryState;
 export const useTimelineQueryStates = timelineQueryState.useQueryStates;
