@@ -1,7 +1,6 @@
 "use client";
 
 import { SnapModifier } from "@dnd-kit/abstract/modifiers";
-import { DragDropProvider } from "@dnd-kit/react";
 import { useKeyHold } from "@tanstack/react-hotkeys";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
@@ -13,8 +12,6 @@ import {
   useState,
   type WheelEvent,
 } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { SLOT_WIDTH_PX } from "@/core/constants";
 import type { ReservationTimelineRecord } from "@/core/types";
 import { timelineOptions } from "@/data/timeline-options";
@@ -23,12 +20,16 @@ import { useTimelineZoom } from "@/hooks/use-timeline-zoom";
 import { getSeedSelectionForView } from "../timeline-selection";
 import { TimelineLeftPane } from "./timeline-left-pane";
 import { TimelineRightContent } from "./timeline-right-content";
+import { TimelineViewShell } from "./timeline-view-shell";
 import type { TimelineCssVars } from "./types";
 import { useSyncedVerticalScroll } from "./use-synced-vertical-scroll";
 import { useTimelineInteractions } from "./use-timeline-interactions";
 import { useTimelineReservationDnd } from "./use-timeline-reservation-dnd";
 import { useTimelineViewModel } from "./use-timeline-view-model";
 
+/**
+ * Orchestrates timeline state, query filters, DnD state, and scroll bindings.
+ */
 export const TimelineView = () => {
   const { data } = useSuspenseQuery(timelineOptions);
   const serverRecordsRef = useRef(data);
@@ -126,56 +127,37 @@ export const TimelineView = () => {
     handleRightPaneScroll,
   } = useSyncedVerticalScroll();
 
-  if (selection.sectors.length === 0 || selection.tables.length === 0) {
-    return (
-      <div className="min-h-0 rounded-2xl border border-dashed border-slate-300 grid place-items-center px-6 text-center bg-white">
-        <p className="text-sm text-slate-500">
-          No sectors match the selected filters.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-0 min-w-0 flex-1 overflow-hidden border border-slate-200 rounded-xl">
-      <TooltipProvider>
-        <DragDropProvider
-          {...dndApi.providerHandlers}
-          modifiers={dragModifiers}
-        >
-          <div
-            className="flex h-full min-h-0 min-w-0"
-            onPointerDownCapture={handleTimelinePointerDown}
-            onWheelCapture={handleTimelineWheel}
-          >
-            <TimelineLeftPane
-              days={days}
-              leftPaneRef={leftPaneRef}
-              onScroll={handleLeftPaneScroll}
-              isSectorOpen={isSectorOpen}
-              onSectorOpenChange={setSectorOpen}
-            />
-
-            <ScrollArea
-              className="min-h-0 min-w-0 flex-1"
-              viewportRef={rightViewportRef}
-              onViewportScroll={handleRightPaneScroll}
-            >
-              <TimelineRightContent
-                days={days}
-                selectedReservationIds={selectedReservationKeys}
-                tableById={tableById}
-                sectorById={sectorById}
-                timelineCssVars={timelineCssVars}
-                onReservationClick={handleReservationClick}
-                isSectorOpen={isSectorOpen}
-                onSectorOpenChange={setSectorOpen}
-                dndApi={dndApi}
-              />
-            </ScrollArea>
-          </div>
-        </DragDropProvider>
-      </TooltipProvider>
-    </div>
+    <TimelineViewShell
+      empty={selection.sectors.length === 0 || selection.tables.length === 0}
+      providerHandlers={dndApi.providerHandlers}
+      dragModifiers={dragModifiers}
+      onTimelinePointerDown={handleTimelinePointerDown}
+      onTimelineWheel={handleTimelineWheel}
+      rightViewportRef={rightViewportRef}
+      onRightViewportScroll={handleRightPaneScroll}
+      leftPane={
+        <TimelineLeftPane
+          days={days}
+          leftPaneRef={leftPaneRef}
+          onScroll={handleLeftPaneScroll}
+          isSectorOpen={isSectorOpen}
+          onSectorOpenChange={setSectorOpen}
+        />
+      }
+      rightContent={
+        <TimelineRightContent
+          days={days}
+          selectedReservationIds={selectedReservationKeys}
+          tableById={tableById}
+          sectorById={sectorById}
+          timelineCssVars={timelineCssVars}
+          onReservationClick={handleReservationClick}
+          isSectorOpen={isSectorOpen}
+          onSectorOpenChange={setSectorOpen}
+          dndApi={dndApi}
+        />
+      }
+    />
   );
 };

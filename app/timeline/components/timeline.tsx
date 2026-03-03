@@ -1,10 +1,6 @@
 import { Container } from "@/components/container";
-import { DateControls } from "./date-controls";
-import { FilterMenu } from "./filter-menu";
-import { SearchInput } from "./search-input";
+import { TimelineToolbar } from "./timeline-toolbar";
 import { TimelineView } from "./timeline-view";
-import { ViewModeSelector } from "./view-mode-selector";
-import { ZoomControls } from "./zoom-controls";
 
 const Root = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -17,19 +13,7 @@ const Root = ({ children }: { children: React.ReactNode }) => {
 };
 
 const Toolbar = () => {
-  return (
-    <div className="flex items-center justify-between flex-wrap gap-3">
-      <div className="inline-flex gap-3">
-        <SearchInput />
-        <FilterMenu />
-        <ZoomControls />
-      </div>
-      <div className="inline-flex items-center gap-3">
-        <DateControls />
-        <ViewModeSelector />
-      </div>
-    </div>
-  );
+  return <TimelineToolbar />;
 };
 
 export const Timeline = {
