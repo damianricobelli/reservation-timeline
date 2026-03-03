@@ -14,6 +14,8 @@ import {
   STATUS_BLOCK_STYLE,
 } from "@/core/constants";
 import { cn } from "@/lib/utils";
+import { TimelineReservationContextMenu } from "./timeline-reservation-context-menu";
+import { TimelineReservationSummaryCard } from "./timeline-reservation-summary-card";
 import type {
   SelectionReservation,
   SelectionSector,
@@ -36,12 +38,22 @@ import {
 type TimelineReservationBlockProps = {
   reservation: SelectionReservation;
   reservationKey: string;
+  reservationEntityKey: string;
   rowTable: SelectionTable;
   rowSector: SelectionSector;
   timelineStart: Dayjs;
   timelineEnd: Dayjs;
   isSelected: boolean;
+  actionPending: boolean;
   onClick: (reservationKey: string) => void;
+  onEditDetails: (reservationEntityKey: string) => void;
+  onStatusChange: (
+    reservationEntityKey: string,
+    nextStatus: SelectionReservation["status"],
+  ) => void;
+  onMarkNoShow: (reservationEntityKey: string) => void;
+  onCancelReservation: (reservationEntityKey: string) => void;
+  onDeleteReservation: (reservationEntityKey: string) => void;
   tableById: Map<SelectionTableId, SelectionTable>;
   sectorById: Map<SelectionSectorId, SelectionSector>;
   dragId: string;
@@ -74,12 +86,19 @@ type BlockClassInput = {
 export function TimelineReservationBlock({
   reservation,
   reservationKey,
+  reservationEntityKey,
   rowTable,
   rowSector,
   timelineStart,
   timelineEnd,
   isSelected,
+  actionPending,
   onClick,
+  onEditDetails,
+  onStatusChange,
+  onMarkNoShow,
+  onCancelReservation,
+  onDeleteReservation,
   tableById,
   sectorById,
   dragId,
@@ -105,117 +124,79 @@ export function TimelineReservationBlock({
 
   if (blockLayout.hidden) return null;
 
-  const statusStyle = STATUS_BLOCK_STYLE[reservation.status];
-  const statusLabel = getStatusLabel(reservation.status);
-  const priorityLabel = formatPriorityLabel(reservation.priority);
   const reservationTable = tableById.get(reservation.tableId);
   const reservationSector = sectorById.get(reservationTable?.sectorId ?? "");
 
   return (
     <>
       <Tooltip>
-        <TooltipTrigger
-          ref={ref}
-          type="button"
-          data-reservation-block="true"
-          data-selected={isSelected}
-          className={getBlockClassName({
-            reservation,
-            isGhost: isDragSource,
-            invalid,
-          })}
-          style={{
-            left: toZoomScaledX(blockLayout.left),
-            top: RESERVATION_INSET_Y,
-            width: toZoomScaledX(blockLayout.width),
-            height: ROW_HEIGHT_PX - RESERVATION_INSET_Y * 2,
-          }}
-          onClick={() => {
-            if (isDragSource) return;
-            onClick(reservationKey);
-          }}
-          aria-pressed={isSelected}
-          aria-selected={isSelected}
+        <TimelineReservationContextMenu
+          reservation={reservation}
+          reservationEntityKey={reservationEntityKey}
+          tableName={reservationTable?.name ?? rowTable.name}
+          sectorName={reservationSector?.name ?? rowSector.name}
+          disabled={actionPending}
+          onEditDetails={onEditDetails}
+          onStatusChange={onStatusChange}
+          onMarkNoShow={onMarkNoShow}
+          onCancelReservation={onCancelReservation}
+          onDeleteReservation={onDeleteReservation}
         >
-          <div
-            ref={handleRef}
-            className="h-full w-full cursor-grab touch-none active:cursor-grabbing"
+          <TooltipTrigger
+            ref={ref}
+            type="button"
+            data-reservation-block="true"
+            data-selected={isSelected}
+            className={getBlockClassName({
+              reservation,
+              isGhost: isDragSource,
+              invalid,
+            })}
+            style={{
+              left: toZoomScaledX(blockLayout.left),
+              top: RESERVATION_INSET_Y,
+              width: toZoomScaledX(blockLayout.width),
+              height: ROW_HEIGHT_PX - RESERVATION_INSET_Y * 2,
+            }}
+            onClick={() => {
+              if (isDragSource) return;
+              onClick(reservationKey);
+            }}
+            onContextMenu={() => {
+              if (!isSelected) {
+                onClick(reservationKey);
+              }
+            }}
+            aria-pressed={isSelected}
+            aria-selected={isSelected}
           >
-            <ReservationBlockContent reservation={reservation} />
-          </div>
-          <div
-            className="group/resize-edge absolute inset-y-0 left-0 z-20 w-3 cursor-ew-resize touch-none"
-            {...resizeStartHandleProps}
-          >
-            <span className="pointer-events-none absolute inset-y-2 left-0 w-0.5 rounded-full bg-slate-400 opacity-0 transition-opacity duration-150 group-hover/resize-edge:opacity-100" />
-          </div>
-          <div
-            className="group/resize-edge absolute inset-y-0 right-0 z-20 w-3 cursor-ew-resize touch-none"
-            {...resizeEndHandleProps}
-          >
-            <span className="pointer-events-none absolute inset-y-2 right-0 w-0.5 rounded-full bg-slate-400 opacity-0 transition-opacity duration-150 group-hover/resize-edge:opacity-100" />
-          </div>
-        </TooltipTrigger>
+            <div
+              ref={handleRef}
+              className="h-full w-full cursor-grab touch-none active:cursor-grabbing"
+            >
+              <ReservationBlockContent reservation={reservation} />
+            </div>
+            <div
+              className="group/resize-edge absolute inset-y-0 left-0 z-20 w-3 cursor-ew-resize touch-none"
+              {...resizeStartHandleProps}
+            >
+              <span className="pointer-events-none absolute inset-y-2 left-0 w-0.5 rounded-full bg-slate-400 opacity-0 transition-opacity duration-150 group-hover/resize-edge:opacity-100" />
+            </div>
+            <div
+              className="group/resize-edge absolute inset-y-0 right-0 z-20 w-3 cursor-ew-resize touch-none"
+              {...resizeEndHandleProps}
+            >
+              <span className="pointer-events-none absolute inset-y-2 right-0 w-0.5 rounded-full bg-slate-400 opacity-0 transition-opacity duration-150 group-hover/resize-edge:opacity-100" />
+            </div>
+          </TooltipTrigger>
+        </TimelineReservationContextMenu>
 
         <TooltipContent>
-          <div className="flex items-start justify-between gap-2 border-b border-slate-200 px-3 py-2">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-slate-900">
-                {reservation.customer.name}
-              </p>
-              <p className="mt-0.5 truncate text-[11px] text-slate-500">
-                {reservationTable?.name ?? rowTable.name} ·{" "}
-                {reservationSector?.name ?? rowSector.name}
-              </p>
-            </div>
-
-            <Badge
-              variant="outline"
-              className={cn(
-                "shrink-0 rounded-md px-1.5 text-[9px] font-semibold uppercase tracking-wide",
-                statusStyle.statusBadgeClassName,
-              )}
-            >
-              {statusLabel}
-            </Badge>
-          </div>
-
-          <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 px-3 py-2 text-[11px]">
-            <dt className="text-slate-500">Time</dt>
-            <dd className="font-medium tabular-nums text-slate-800">
-              {formatTimeRange(reservation)}
-            </dd>
-
-            <dt className="text-slate-500">Party</dt>
-            <dd className="font-medium text-slate-800">
-              {reservation.partySize}
-            </dd>
-
-            <dt className="text-slate-500">Priority</dt>
-            <dd className="font-medium text-slate-800">
-              {priorityLabel ?? "Standard"}
-            </dd>
-
-            <dt className="text-slate-500">Phone</dt>
-            <dd className="font-medium text-slate-800">
-              {reservation.customer.phone}
-            </dd>
-          </dl>
-
-          {reservation.notes ? (
-            <div className="border-t border-slate-200 px-3 py-2">
-              <p className="text-[11px] text-slate-500">Notes</p>
-              <p className="mt-0.5 text-[11px] text-slate-700">
-                {reservation.notes}
-              </p>
-            </div>
-          ) : null}
-
-          {reservation.status === "CANCELLED" ? (
-            <div className="border-t border-slate-200 px-3 py-1.5 text-[10px] text-slate-500">
-              Cancelled reservation
-            </div>
-          ) : null}
+          <TimelineReservationSummaryCard
+            reservation={reservation}
+            tableName={reservationTable?.name ?? rowTable.name}
+            sectorName={reservationSector?.name ?? rowSector.name}
+          />
         </TooltipContent>
       </Tooltip>
 

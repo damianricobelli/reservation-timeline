@@ -24,6 +24,7 @@ import { TimelineViewShell } from "./timeline-view-shell";
 import type { TimelineCssVars } from "./types";
 import { useSyncedVerticalScroll } from "./use-synced-vertical-scroll";
 import { useTimelineInteractions } from "./use-timeline-interactions";
+import { useTimelineReservationActions } from "./use-timeline-reservation-actions";
 import { useTimelineReservationCreate } from "./use-timeline-reservation-create";
 import { useTimelineReservationDnd } from "./use-timeline-reservation-dnd";
 import { useTimelineViewModel } from "./use-timeline-view-model";
@@ -99,6 +100,11 @@ export const TimelineView = () => {
     zoomPercent,
     rightViewportRef,
   });
+  const reservationActionsApi = useTimelineReservationActions({
+    records: timelineRecords,
+    setRecords: setTimelineRecords,
+    tableById,
+  });
 
   const timelineCssVars: TimelineCssVars = {
     "--timeline-zoom": `${zoomPercent / 100}`,
@@ -163,6 +169,7 @@ export const TimelineView = () => {
           onSectorOpenChange={setSectorOpen}
           dndApi={dndApi}
           createApi={createApi}
+          reservationActionsApi={reservationActionsApi}
         />
       }
     />

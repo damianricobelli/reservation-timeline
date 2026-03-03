@@ -140,6 +140,74 @@ export function appendReservation(
   });
 }
 
+/**
+ * Replaces a reservation by entity key and keeps target day ordering stable.
+ */
+export function replaceReservationByEntityKey(
+  records: ReservationTimelineRecord[],
+  reservationEntityKey: string,
+  nextReservation: SelectionReservation,
+) {
+  let didUpdate = false;
+
+  const nextRecords = records.map((record) => {
+    const reservationIndex = record.reservations.findIndex((reservation) => {
+      return getReservationEntityKey(reservation) === reservationEntityKey;
+    });
+
+    if (reservationIndex < 0) {
+      return record;
+    }
+
+    didUpdate = true;
+    const reservations = record.reservations.map((reservation, index) => {
+      if (index !== reservationIndex) {
+        return reservation;
+      }
+
+      return nextReservation;
+    });
+    reservations.sort(sortByStartTime);
+
+    return {
+      ...record,
+      reservations,
+    };
+  });
+
+  return didUpdate ? nextRecords : records;
+}
+
+/**
+ * Removes a reservation by entity key from all loaded days.
+ */
+export function removeReservationByEntityKey(
+  records: ReservationTimelineRecord[],
+  reservationEntityKey: string,
+) {
+  let didDelete = false;
+
+  const nextRecords = records.map((record) => {
+    const reservations = record.reservations.filter((reservation) => {
+      const keep =
+        getReservationEntityKey(reservation) !== reservationEntityKey;
+      didDelete = didDelete || !keep;
+      return keep;
+    });
+
+    if (reservations.length === record.reservations.length) {
+      return record;
+    }
+
+    return {
+      ...record,
+      reservations,
+    };
+  });
+
+  return didDelete ? nextRecords : records;
+}
+
 function sortByStartTime(a: Reservation, b: Reservation) {
   return dayjs(a.startTime).valueOf() - dayjs(b.startTime).valueOf();
 }

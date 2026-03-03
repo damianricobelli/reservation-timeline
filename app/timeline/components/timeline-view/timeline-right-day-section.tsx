@@ -1,5 +1,6 @@
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { GRID_WIDTH_CSS, HEADER_HEIGHT_PX } from "@/core/constants";
+import type { ReservationStatus } from "@/core/types";
 import { TimelineHoursRow } from "./timeline-hours-row";
 import { TimelineTableRow } from "./timeline-table-row";
 import type {
@@ -19,6 +20,15 @@ type TimelineRightDaySectionProps = {
   tableById: Map<SelectionTableId, SelectionTable>;
   sectorById: Map<SelectionSectorId, SelectionSector>;
   onReservationClick: (reservationKey: string) => void;
+  onEditDetails: (reservationEntityKey: string) => void;
+  onStatusChange: (
+    reservationEntityKey: string,
+    nextStatus: ReservationStatus,
+  ) => void;
+  onMarkNoShow: (reservationEntityKey: string) => void;
+  onCancelReservation: (reservationEntityKey: string) => void;
+  onDeleteReservation: (reservationEntityKey: string) => void;
+  isReservationActionPending: (reservationEntityKey: string) => boolean;
   isSectorOpen: (sectorKey: string) => boolean;
   onSectorOpenChange: (sectorKey: string, open: boolean) => void;
   dndApi: TimelineReservationDndApi;
@@ -35,6 +45,12 @@ export function TimelineRightDaySection({
   tableById,
   sectorById,
   onReservationClick,
+  onEditDetails,
+  onStatusChange,
+  onMarkNoShow,
+  onCancelReservation,
+  onDeleteReservation,
+  isReservationActionPending,
   isSectorOpen,
   onSectorOpenChange,
   dndApi,
@@ -83,6 +99,12 @@ export function TimelineRightDaySection({
                       tableById={tableById}
                       sectorById={sectorById}
                       onReservationClick={onReservationClick}
+                      onEditDetails={onEditDetails}
+                      onStatusChange={onStatusChange}
+                      onMarkNoShow={onMarkNoShow}
+                      onCancelReservation={onCancelReservation}
+                      onDeleteReservation={onDeleteReservation}
+                      isReservationActionPending={isReservationActionPending}
                       dndApi={dndApi}
                       createApi={createApi}
                     />

@@ -1,6 +1,8 @@
 import { useTimelineZoom } from "@/hooks/use-timeline-zoom";
 import { TimelineDragOverlay } from "./timeline-drag-overlay";
 import { TimelineQuickCreateModal } from "./timeline-quick-create-modal";
+import { TimelineReservationConfirmModal } from "./timeline-reservation-confirm-modal";
+import { TimelineReservationEditModal } from "./timeline-reservation-edit-modal";
 import { TimelineRightDaySection } from "./timeline-right-day-section";
 import type {
   SelectionSector,
@@ -11,6 +13,7 @@ import type {
   TimelineDayModel,
 } from "./types";
 import { useTimelineNowIndicator } from "./use-timeline-now-indicator";
+import type { TimelineReservationActionsApi } from "./use-timeline-reservation-actions";
 import type { TimelineReservationCreateApi } from "./use-timeline-reservation-create";
 import type { TimelineReservationDndApi } from "./use-timeline-reservation-dnd";
 import { toZoomScaledX } from "./utils";
@@ -26,6 +29,7 @@ type TimelineRightContentProps = {
   onSectorOpenChange: (sectorKey: string, open: boolean) => void;
   dndApi: TimelineReservationDndApi;
   createApi: TimelineReservationCreateApi;
+  reservationActionsApi: TimelineReservationActionsApi;
 };
 
 /**
@@ -42,6 +46,7 @@ export function TimelineRightContent({
   onSectorOpenChange,
   dndApi,
   createApi,
+  reservationActionsApi,
 }: TimelineRightContentProps) {
   const { zoomPercent } = useTimelineZoom();
   const nowOffsetPx = useTimelineNowIndicator();
@@ -67,6 +72,12 @@ export function TimelineRightContent({
           tableById={tableById}
           sectorById={sectorById}
           onReservationClick={onReservationClick}
+          onEditDetails={reservationActionsApi.openEditDraft}
+          onStatusChange={reservationActionsApi.updateReservationStatus}
+          onMarkNoShow={reservationActionsApi.markReservationNoShow}
+          onCancelReservation={reservationActionsApi.requestCancelReservation}
+          onDeleteReservation={reservationActionsApi.requestDeleteReservation}
+          isReservationActionPending={reservationActionsApi.isReservationBusy}
           isSectorOpen={isSectorOpen}
           onSectorOpenChange={onSectorOpenChange}
           dndApi={dndApi}
@@ -79,6 +90,18 @@ export function TimelineRightContent({
         draft={createApi.draft}
         onClose={createApi.closeDraft}
         onSubmit={createApi.submitDraft}
+      />
+      <TimelineReservationEditModal
+        draft={reservationActionsApi.editDraft}
+        onClose={reservationActionsApi.closeEditDraft}
+        onSubmit={reservationActionsApi.submitEditDraft}
+      />
+      <TimelineReservationConfirmModal
+        draft={reservationActionsApi.confirmationDraft}
+        errorMessage={reservationActionsApi.confirmationError}
+        pendingAction={reservationActionsApi.pendingAction}
+        onClose={reservationActionsApi.closeConfirmationDraft}
+        onConfirm={reservationActionsApi.confirmReservationAction}
       />
     </div>
   );

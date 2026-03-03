@@ -15,7 +15,7 @@ import type {
 } from "./types";
 import type { TimelineReservationCreateApi } from "./use-timeline-reservation-create";
 import type { TimelineReservationDndApi } from "./use-timeline-reservation-dnd";
-import { getReservationRenderKey } from "./utils";
+import { getReservationEntityKey, getReservationRenderKey } from "./utils";
 
 type TimelineTableRowProps = {
   dateKey: DateKey;
@@ -28,6 +28,15 @@ type TimelineTableRowProps = {
   tableById: Map<SelectionTableId, SelectionTable>;
   sectorById: Map<SelectionSectorId, SelectionSector>;
   onReservationClick: (reservationKey: string) => void;
+  onEditDetails: (reservationEntityKey: string) => void;
+  onStatusChange: (
+    reservationEntityKey: string,
+    nextStatus: SelectionReservation["status"],
+  ) => void;
+  onMarkNoShow: (reservationEntityKey: string) => void;
+  onCancelReservation: (reservationEntityKey: string) => void;
+  onDeleteReservation: (reservationEntityKey: string) => void;
+  isReservationActionPending: (reservationEntityKey: string) => boolean;
   dndApi: TimelineReservationDndApi;
   createApi: TimelineReservationCreateApi;
 };
@@ -46,6 +55,12 @@ export function TimelineTableRow({
   tableById,
   sectorById,
   onReservationClick,
+  onEditDetails,
+  onStatusChange,
+  onMarkNoShow,
+  onCancelReservation,
+  onDeleteReservation,
+  isReservationActionPending,
   dndApi,
   createApi,
 }: TimelineTableRowProps) {
@@ -69,7 +84,9 @@ export function TimelineTableRow({
     >
       {reservations.map((reservation) => {
         const reservationKey = getReservationRenderKey(reservation);
+        const reservationEntityKey = getReservationEntityKey(reservation);
         const isSelected = selectedReservationIds.has(reservationKey);
+        const actionPending = isReservationActionPending(reservationEntityKey);
         const draggable = dndApi.getReservationDraggableAttributes(reservation);
         const resizePreview = dndApi.getResizePreview(reservation);
         const blockReservation = resizePreview?.reservation ?? reservation;
@@ -79,12 +96,19 @@ export function TimelineTableRow({
             key={reservationKey}
             reservation={blockReservation}
             reservationKey={reservationKey}
+            reservationEntityKey={reservationEntityKey}
             rowTable={table}
             rowSector={sector}
             timelineStart={timelineStart}
             timelineEnd={timelineEnd}
             isSelected={isSelected}
+            actionPending={actionPending}
             onClick={onReservationClick}
+            onEditDetails={onEditDetails}
+            onStatusChange={onStatusChange}
+            onMarkNoShow={onMarkNoShow}
+            onCancelReservation={onCancelReservation}
+            onDeleteReservation={onDeleteReservation}
             tableById={tableById}
             sectorById={sectorById}
             dragId={draggable.id}

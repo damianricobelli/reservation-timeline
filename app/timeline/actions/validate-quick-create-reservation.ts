@@ -36,12 +36,6 @@ export type QuickCreateReservationActionState = {
   data?: QuickCreateReservationInput;
 };
 
-export const QUICK_CREATE_RESERVATION_INITIAL_STATE: QuickCreateReservationActionState =
-  {
-    status: "idle",
-    fieldErrors: {},
-  };
-
 /**
  * Server-side validation for quick-create form payload.
  */

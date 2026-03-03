@@ -5,6 +5,8 @@ import {
   appendReservation,
   commitReservationMove,
   findReservationByEntityKey,
+  removeReservationByEntityKey,
+  replaceReservationByEntityKey,
 } from "./records";
 
 function buildReservation({
@@ -166,5 +168,46 @@ describe("records helpers", () => {
     expect(next[0]?.reservations).toHaveLength(2);
     expect(next[0]?.reservations[0]?.id).toBe("2");
     expect(next[0]?.reservations[1]?.id).toBe("1");
+  });
+
+  it("replaceReservationByEntityKey replaces the reservation when found", () => {
+    const reservation = buildReservation({
+      id: "1",
+      tableId: "T1",
+      startTime: "2025-10-15T20:00:00-03:00",
+      endTime: "2025-10-15T21:30:00-03:00",
+    });
+    const entityKey = getReservationEntityKey(reservation);
+
+    const next = replaceReservationByEntityKey(
+      [buildRecord("2025-10-15", [reservation])],
+      entityKey,
+      {
+        ...reservation,
+        customer: {
+          ...reservation.customer,
+          name: "Updated Name",
+        },
+      },
+    );
+
+    expect(next[0]?.reservations[0]?.customer.name).toBe("Updated Name");
+  });
+
+  it("removeReservationByEntityKey deletes reservation when found", () => {
+    const reservation = buildReservation({
+      id: "1",
+      tableId: "T1",
+      startTime: "2025-10-15T20:00:00-03:00",
+      endTime: "2025-10-15T21:30:00-03:00",
+    });
+    const entityKey = getReservationEntityKey(reservation);
+
+    const next = removeReservationByEntityKey(
+      [buildRecord("2025-10-15", [reservation])],
+      entityKey,
+    );
+
+    expect(next[0]?.reservations).toHaveLength(0);
   });
 });
