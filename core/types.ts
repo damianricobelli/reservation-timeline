@@ -3,15 +3,24 @@ type ISODateTime = string; // e.g., "2025-10-15T20:00:00-03:00"
 type Minutes = number;
 export type SlotIndex = number; // 0-based, each slot = 15min
 
-export type ReservationStatus =
-  | "PENDING" // Awaiting confirmation
-  | "CONFIRMED" // Confirmed, not yet seated
-  | "SEATED" // Currently at the table
-  | "FINISHED" // Completed
-  | "NO_SHOW" // Didn't arrive
-  | "CANCELLED"; // Cancelled
+export const RESERVATION_STATUS_VALUES = [
+  "PENDING",
+  "CONFIRMED",
+  "SEATED",
+  "FINISHED",
+  "NO_SHOW",
+  "CANCELLED",
+] as const;
 
-type Priority = "STANDARD" | "VIP" | "LARGE_GROUP";
+export type ReservationStatus = (typeof RESERVATION_STATUS_VALUES)[number];
+
+export const RESERVATION_PRIORITY_VALUES = [
+  "STANDARD",
+  "VIP",
+  "LARGE_GROUP",
+] as const;
+
+export type ReservationPriority = (typeof RESERVATION_PRIORITY_VALUES)[number];
 
 export interface Sector {
   id: UUID;
@@ -47,7 +56,7 @@ export interface Reservation {
   endTime: ISODateTime;
   durationMinutes: Minutes;
   status: ReservationStatus;
-  priority: Priority;
+  priority: ReservationPriority;
   notes?: string;
   source?: string; // 'phone', 'web', 'walkin', 'app'
   createdAt: ISODateTime;

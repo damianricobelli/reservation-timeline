@@ -24,6 +24,7 @@ import { TimelineViewShell } from "./timeline-view-shell";
 import type { TimelineCssVars } from "./types";
 import { useSyncedVerticalScroll } from "./use-synced-vertical-scroll";
 import { useTimelineInteractions } from "./use-timeline-interactions";
+import { useTimelineReservationCreate } from "./use-timeline-reservation-create";
 import { useTimelineReservationDnd } from "./use-timeline-reservation-dnd";
 import { useTimelineViewModel } from "./use-timeline-view-model";
 
@@ -78,6 +79,12 @@ export const TimelineView = () => {
     handleReservationClick,
     handleTimelinePointerDown,
   } = useTimelineInteractions();
+  const {
+    leftPaneRef,
+    rightViewportRef,
+    handleLeftPaneScroll,
+    handleRightPaneScroll,
+  } = useSyncedVerticalScroll();
 
   const { days, tableById, sectorById } = useTimelineViewModel(selection);
   const dndApi = useTimelineReservationDnd({
@@ -85,6 +92,12 @@ export const TimelineView = () => {
     setRecords: setTimelineRecords,
     tableById,
     zoomPercent,
+  });
+  const createApi = useTimelineReservationCreate({
+    records: timelineRecords,
+    setRecords: setTimelineRecords,
+    zoomPercent,
+    rightViewportRef,
   });
 
   const timelineCssVars: TimelineCssVars = {
@@ -120,13 +133,6 @@ export const TimelineView = () => {
     }
   };
 
-  const {
-    leftPaneRef,
-    rightViewportRef,
-    handleLeftPaneScroll,
-    handleRightPaneScroll,
-  } = useSyncedVerticalScroll();
-
   return (
     <TimelineViewShell
       empty={selection.sectors.length === 0 || selection.tables.length === 0}
@@ -156,6 +162,7 @@ export const TimelineView = () => {
           isSectorOpen={isSectorOpen}
           onSectorOpenChange={setSectorOpen}
           dndApi={dndApi}
+          createApi={createApi}
         />
       }
     />

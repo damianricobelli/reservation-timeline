@@ -1,5 +1,6 @@
 import { useTimelineZoom } from "@/hooks/use-timeline-zoom";
 import { TimelineDragOverlay } from "./timeline-drag-overlay";
+import { TimelineQuickCreateModal } from "./timeline-quick-create-modal";
 import { TimelineRightDaySection } from "./timeline-right-day-section";
 import type {
   SelectionSector,
@@ -8,6 +9,7 @@ import type {
   TimelineDayModel,
 } from "./types";
 import { useTimelineNowIndicator } from "./use-timeline-now-indicator";
+import type { TimelineReservationCreateApi } from "./use-timeline-reservation-create";
 import type { TimelineReservationDndApi } from "./use-timeline-reservation-dnd";
 import { toZoomScaledX } from "./utils";
 
@@ -21,6 +23,7 @@ type TimelineRightContentProps = {
   isSectorOpen: (sectorKey: string) => boolean;
   onSectorOpenChange: (sectorKey: string, open: boolean) => void;
   dndApi: TimelineReservationDndApi;
+  createApi: TimelineReservationCreateApi;
 };
 
 /**
@@ -36,6 +39,7 @@ export function TimelineRightContent({
   isSectorOpen,
   onSectorOpenChange,
   dndApi,
+  createApi,
 }: TimelineRightContentProps) {
   const { zoomPercent } = useTimelineZoom();
   const nowOffsetPx = useTimelineNowIndicator();
@@ -64,10 +68,16 @@ export function TimelineRightContent({
           isSectorOpen={isSectorOpen}
           onSectorOpenChange={onSectorOpenChange}
           dndApi={dndApi}
+          createApi={createApi}
         />
       ))}
 
       <TimelineDragOverlay preview={dndApi.preview} />
+      <TimelineQuickCreateModal
+        draft={createApi.draft}
+        onClose={createApi.closeDraft}
+        onSubmit={createApi.submitDraft}
+      />
     </div>
   );
 }

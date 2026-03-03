@@ -1,6 +1,8 @@
 import { useDroppable } from "@dnd-kit/react";
 import { ROW_HEIGHT_PX } from "@/core/constants";
 import { getDragValidationMessage } from "./drag-validation-message";
+import { TimelineCreatePreviewBlock } from "./timeline-create-preview-block";
+import { getCreateValidationMessage } from "./timeline-create-validation-message";
 import { TimelineReservationBlock } from "./timeline-reservation-block";
 import type {
   SelectionReservation,
@@ -8,6 +10,7 @@ import type {
   SelectionTable,
   TimelineDayModel,
 } from "./types";
+import type { TimelineReservationCreateApi } from "./use-timeline-reservation-create";
 import type { TimelineReservationDndApi } from "./use-timeline-reservation-dnd";
 import { getReservationRenderKey } from "./utils";
 
@@ -23,6 +26,7 @@ type TimelineTableRowProps = {
   sectorById: Map<string, SelectionSector>;
   onReservationClick: (reservationKey: string) => void;
   dndApi: TimelineReservationDndApi;
+  createApi: TimelineReservationCreateApi;
 };
 
 /**
@@ -40,18 +44,25 @@ export function TimelineTableRow({
   sectorById,
   onReservationClick,
   dndApi,
+  createApi,
 }: TimelineTableRowProps) {
   const droppable = dndApi.getRowDroppableAttributes(dateKey, table.id);
   const { ref } = useDroppable({
     id: droppable.id,
     data: droppable.data,
   });
+  const rowCreateHandlers = createApi.getRowCreatePointerHandlers({
+    dateKey,
+    table,
+  });
+  const createPreview = createApi.getRowCreatePreview(dateKey, table.id);
 
   return (
     <div
       ref={ref}
-      className="timeline-grid-lines relative border-r border-b border-slate-200"
+      className="timeline-grid-lines relative cursor-crosshair border-r border-b border-slate-200"
       style={{ height: ROW_HEIGHT_PX }}
+      {...rowCreateHandlers}
     >
       {reservations.map((reservation) => {
         const reservationKey = getReservationRenderKey(reservation);
@@ -92,6 +103,13 @@ export function TimelineTableRow({
           />
         );
       })}
+
+      {createPreview ? (
+        <TimelineCreatePreviewBlock
+          preview={createPreview}
+          validationMessage={getCreateValidationMessage(createPreview.reason)}
+        />
+      ) : null}
     </div>
   );
 }

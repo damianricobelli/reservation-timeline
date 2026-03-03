@@ -1,0 +1,99 @@
+"use server";
+
+import { z } from "zod";
+import {
+  RESERVATION_PRIORITY_VALUES,
+  RESERVATION_STATUS_VALUES,
+} from "@/core/types";
+
+const quickCreateReservationSchema = z.object({
+  customerName: z.string().trim().min(1, "Customer name is required."),
+  phone: z.string().trim().min(1, "Phone is required."),
+  partySize: z.coerce
+    .number()
+    .int("Party size must be an integer.")
+    .min(1, "Party size must be at least 1."),
+  status: z.enum(RESERVATION_STATUS_VALUES),
+  priority: z.enum(RESERVATION_PRIORITY_VALUES),
+  notes: z.string().trim().optional(),
+});
+
+export type QuickCreateReservationInput = z.infer<
+  typeof quickCreateReservationSchema
+>;
+
+export type QuickCreateReservationFieldErrors = Partial<
+  Record<
+    "customerName" | "phone" | "partySize" | "status" | "priority" | "notes",
+    string
+  >
+>;
+
+export type QuickCreateReservationActionState = {
+  status: "idle" | "error" | "success";
+  message?: string;
+  fieldErrors: QuickCreateReservationFieldErrors;
+  data?: QuickCreateReservationInput;
+};
+
+export const QUICK_CREATE_RESERVATION_INITIAL_STATE: QuickCreateReservationActionState =
+  {
+    status: "idle",
+    fieldErrors: {},
+  };
+
+/**
+ * Server-side validation for quick-create form payload.
+ */
+export async function validateQuickCreateReservationAction(
+  _previousState: QuickCreateReservationActionState,
+  formData: FormData,
+): Promise<QuickCreateReservationActionState> {
+  const parsed = quickCreateReservationSchema.safeParse({
+    customerName: getFormString(formData, "customerName"),
+    phone: getFormString(formData, "phone"),
+    partySize: getFormString(formData, "partySize"),
+    status: getFormString(formData, "status"),
+    priority: getFormString(formData, "priority"),
+    notes: getFormString(formData, "notes"),
+  });
+
+  if (!parsed.success) {
+    const fieldErrors: QuickCreateReservationFieldErrors = {};
+
+    for (const issue of parsed.error.issues) {
+      const field = issue.path[0];
+
+      if (
+        field === "customerName" ||
+        field === "phone" ||
+        field === "partySize" ||
+        field === "status" ||
+        field === "priority" ||
+        field === "notes"
+      ) {
+        fieldErrors[field] = issue.message;
+      }
+    }
+
+    return {
+      status: "error",
+      fieldErrors,
+      message: "Please correct the highlighted fields.",
+    };
+  }
+
+  return {
+    status: "success",
+    fieldErrors: {},
+    data: {
+      ...parsed.data,
+      notes: parsed.data.notes?.trim() || undefined,
+    },
+  };
+}
+
+function getFormString(formData: FormData, name: string) {
+  const value = formData.get(name);
+  return typeof value === "string" ? value : "";
+}

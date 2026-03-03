@@ -113,6 +113,29 @@ export function commitReservationMove(
   });
 }
 
+/**
+ * Appends a newly created reservation to the selected day and keeps ordering.
+ */
+export function appendReservation(
+  records: ReservationTimelineRecord[],
+  targetDateKey: string,
+  reservation: SelectionReservation,
+) {
+  return records.map((record) => {
+    if (record.date !== targetDateKey) {
+      return record;
+    }
+
+    const reservations = [...record.reservations, reservation];
+    reservations.sort(sortByStartTime);
+
+    return {
+      ...record,
+      reservations,
+    };
+  });
+}
+
 function sortByStartTime(a: Reservation, b: Reservation) {
   return dayjs(a.startTime).valueOf() - dayjs(b.startTime).valueOf();
 }

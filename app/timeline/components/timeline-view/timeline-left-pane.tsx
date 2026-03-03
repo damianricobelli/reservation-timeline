@@ -16,6 +16,14 @@ type TimelineLeftPaneProps = {
   onSectorOpenChange: (sectorKey: string, open: boolean) => void;
 };
 
+function formatTableCapacity(min: number, max: number): string {
+  if (min === max) {
+    return `Seats ${min} ${min === 1 ? "guest" : "guests"}`;
+  }
+
+  return `Seats ${min}-${max} guests`;
+}
+
 export function TimelineLeftPane({
   days,
   leftPaneRef,
@@ -87,7 +95,10 @@ export function TimelineLeftPane({
                               {table.name}
                             </p>
                             <p className="text-xs text-slate-500">
-                              Cap {table.capacity.min}-{table.capacity.max}
+                              {formatTableCapacity(
+                                table.capacity.min,
+                                table.capacity.max,
+                              )}
                             </p>
                           </div>
                         </div>

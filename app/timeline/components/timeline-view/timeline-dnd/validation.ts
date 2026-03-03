@@ -1,8 +1,11 @@
 import dayjs, { type Dayjs } from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import {
+  TIMELINE_DURATION_MINUTES,
+  TIMELINE_START_HOUR,
+} from "@/core/constants";
 import type { ReservationTimelineRecord, ServiceHour } from "@/core/types";
-import { TIMELINE_DURATION_MINUTES, TIMELINE_START_HOUR } from "@/core/constants";
 import type { SelectionReservation, SelectionTable } from "../types";
 import { getReservationEntityKey } from "../utils";
 import type { MoveValidationReason } from "./types";
@@ -110,7 +113,11 @@ export function isWithinServiceHours(
   }
 
   return serviceHours.some((serviceHour) => {
-    const start = parseServiceHourDate(dateKey, serviceHour.start, timezoneName);
+    const start = parseServiceHourDate(
+      dateKey,
+      serviceHour.start,
+      timezoneName,
+    );
     let end = parseServiceHourDate(dateKey, serviceHour.end, timezoneName);
 
     if (!end.isAfter(start)) {

@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { Reservation, ReservationTimelineRecord } from "@/core/types";
 import { getReservationEntityKey } from "../utils";
-import { commitReservationMove, findReservationByEntityKey } from "./records";
+import {
+  appendReservation,
+  commitReservationMove,
+  findReservationByEntityKey,
+} from "./records";
 
 function buildReservation({
   id,
@@ -137,5 +141,30 @@ describe("records helpers", () => {
     expect(next[1]?.reservations[0]?.startTime).toBe(
       "2025-10-16T20:00:00-03:00",
     );
+  });
+
+  it("appendReservation adds and sorts reservation on target day", () => {
+    const existing = buildReservation({
+      id: "1",
+      tableId: "T1",
+      startTime: "2025-10-15T21:00:00-03:00",
+      endTime: "2025-10-15T22:00:00-03:00",
+    });
+    const inserted = buildReservation({
+      id: "2",
+      tableId: "T1",
+      startTime: "2025-10-15T19:00:00-03:00",
+      endTime: "2025-10-15T20:00:00-03:00",
+    });
+
+    const next = appendReservation(
+      [buildRecord("2025-10-15", [existing])],
+      "2025-10-15",
+      inserted,
+    );
+
+    expect(next[0]?.reservations).toHaveLength(2);
+    expect(next[0]?.reservations[0]?.id).toBe("2");
+    expect(next[0]?.reservations[1]?.id).toBe("1");
   });
 });

@@ -7,6 +7,7 @@ import type {
   SelectionTable,
   TimelineDayModel,
 } from "./types";
+import type { TimelineReservationCreateApi } from "./use-timeline-reservation-create";
 import type { TimelineReservationDndApi } from "./use-timeline-reservation-dnd";
 
 type TimelineRightDaySectionProps = {
@@ -19,6 +20,7 @@ type TimelineRightDaySectionProps = {
   isSectorOpen: (sectorKey: string) => boolean;
   onSectorOpenChange: (sectorKey: string, open: boolean) => void;
   dndApi: TimelineReservationDndApi;
+  createApi: TimelineReservationCreateApi;
 };
 
 /**
@@ -34,6 +36,7 @@ export function TimelineRightDaySection({
   isSectorOpen,
   onSectorOpenChange,
   dndApi,
+  createApi,
 }: TimelineRightDaySectionProps) {
   return (
     <section
@@ -79,6 +82,7 @@ export function TimelineRightDaySection({
                       sectorById={sectorById}
                       onReservationClick={onReservationClick}
                       dndApi={dndApi}
+                      createApi={createApi}
                     />
                   ))}
                 </div>
