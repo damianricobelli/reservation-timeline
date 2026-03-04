@@ -1,8 +1,8 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { Suspense } from "react";
 import { Header } from "@/components/header";
 import { getQueryClient } from "@/core/get-query-client";
 import { timelineOptions } from "@/data/timeline-options";
-import { Suspense } from "react";
 import { Timeline } from "./components/timeline";
 
 export default function Page() {
