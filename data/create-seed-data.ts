@@ -161,7 +161,7 @@ function buildReservation(
   timezoneName: string,
   serviceHours: ServiceHour[],
   table: Table,
-  index: number,
+  reservationId: string,
   existingForTable: Reservation[],
 ): Reservation | null {
   for (let attempt = 0; attempt < 8; attempt += 1) {
@@ -195,7 +195,7 @@ function buildReservation(
     const updatedAt = createdAt.add(randomInt(0, 8), "hour");
 
     return {
-      id: `RES_${String(index).padStart(4, "0")}`,
+      id: reservationId,
       tableId: table.id,
       customer: {
         name: `${firstName} ${lastName}`,
@@ -223,6 +223,7 @@ function buildReservations(
   timezoneName: string,
   serviceHours: ServiceHour[],
   tables: Table[],
+  dayIndex: number,
 ) {
   const reservationsByTable = new Map<string, Reservation[]>();
   tables.forEach((table) => {
@@ -235,12 +236,13 @@ function buildReservations(
   for (let i = 0; i < targetCount; i += 1) {
     const table = randomItem(tables);
     const existingForTable = reservationsByTable.get(table.id) ?? [];
+    const reservationId = `RES_${String(dayIndex).padStart(3, "0")}_${String(reservationCounter).padStart(3, "0")}`;
     const reservation = buildReservation(
       date,
       timezoneName,
       serviceHours,
       table,
-      reservationCounter,
+      reservationId,
       existingForTable,
     );
 
@@ -272,6 +274,7 @@ export function createSeedData(count: number): ReservationTimelineRecord[] {
       restaurant.timezone,
       restaurant.serviceHours,
       tables,
+      index,
     );
 
     return {

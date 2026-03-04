@@ -23,4 +23,13 @@ describe("createSeedData", () => {
       }
     }
   });
+
+  it("generates globally unique reservation ids across loaded days", () => {
+    const records = createSeedData(21);
+    const reservationIds = records.flatMap((record) =>
+      record.reservations.map((reservation) => reservation.id),
+    );
+
+    expect(new Set(reservationIds).size).toBe(reservationIds.length);
+  });
 });
