@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { RESERVATION_STATUS_VALUES } from "@/core/types";
 import { timelineOptions } from "@/data/timeline-options";
-import { useTimelineQueryState } from "@/hooks/use-timeline-query-state";
+import { useTimelineFilters } from "@/hooks/use-timeline-filters";
 import { getSeedSelectionForView } from "../timeline-selection";
 import { SectorsSubMenu } from "./sectors-sub-menu";
 import { normalizeSelectionForQuery } from "./selection-utils";
@@ -20,12 +20,14 @@ import { TablesSubMenu } from "./tables-sub-menu";
 
 export const FilterMenu = () => {
   const { data } = useSuspenseQuery(timelineOptions);
-
-  const [view] = useTimelineQueryState("view");
-  const [date] = useTimelineQueryState("date");
-  const [status] = useTimelineQueryState("status");
-  const [selectedSectorIds] = useTimelineQueryState("sectors");
-  const [selectedTableIds] = useTimelineQueryState("tables");
+  const { filters } = useTimelineFilters();
+  const {
+    view,
+    date,
+    status,
+    sectors: selectedSectorIds,
+    tables: selectedTableIds,
+  } = filters;
 
   const { sectors, tables } = getSeedSelectionForView(data, view, {
     baseDate: date,
