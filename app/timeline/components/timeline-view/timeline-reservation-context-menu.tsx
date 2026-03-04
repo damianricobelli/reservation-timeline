@@ -69,7 +69,7 @@ export function TimelineReservationContextMenu({
     <ContextMenu>
       <ContextMenuTrigger className="contents">{children}</ContextMenuTrigger>
 
-      <ContextMenuContent alignOffset={6} className="min-w-72">
+      <ContextMenuContent alignOffset={6}>
         <ContextMenuGroup>
           <ContextMenuItem
             disabled={disabled}
@@ -84,7 +84,7 @@ export function TimelineReservationContextMenu({
               <CircleDotIcon />
               Change Status
             </ContextMenuSubTrigger>
-            <ContextMenuSubContent sideOffset={6} className="min-w-56">
+            <ContextMenuSubContent sideOffset={6}>
               {RESERVATION_STATUS_VALUES.map((statusValue) => {
                 const isCurrent = statusValue === reservation.status;
 

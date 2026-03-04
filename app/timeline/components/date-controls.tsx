@@ -92,7 +92,7 @@ export function DateControls() {
             <span>Date</span>
           )}
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-auto p-0">
+        <PopoverContent align="center" className="w-auto p-0">
           <Calendar
             mode="single"
             selected={selectedDate ?? undefined}
