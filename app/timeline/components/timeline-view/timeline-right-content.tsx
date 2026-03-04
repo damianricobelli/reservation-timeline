@@ -4,11 +4,8 @@ import { TimelineQuickCreateModal } from "./timeline-quick-create-modal";
 import { TimelineReservationConfirmModal } from "./timeline-reservation-confirm-modal";
 import { TimelineReservationEditModal } from "./timeline-reservation-edit-modal";
 import { TimelineRightDaySection } from "./timeline-right-day-section";
+import { buildTimelineRowDelegates } from "./timeline-row-delegates";
 import type {
-  SelectionSector,
-  SelectionSectorId,
-  SelectionTable,
-  SelectionTableId,
   TimelineCssVars,
   TimelineDayModel,
 } from "./types";
@@ -21,8 +18,6 @@ import { toZoomScaledX } from "./utils";
 type TimelineRightContentProps = {
   days: TimelineDayModel[];
   selectedReservationIds: Set<string>;
-  tableById: Map<SelectionTableId, SelectionTable>;
-  sectorById: Map<SelectionSectorId, SelectionSector>;
   timelineCssVars: TimelineCssVars;
   onReservationClick: (reservationKey: string) => void;
   isSectorOpen: (sectorKey: string) => boolean;
@@ -38,8 +33,6 @@ type TimelineRightContentProps = {
 export function TimelineRightContent({
   days,
   selectedReservationIds,
-  tableById,
-  sectorById,
   timelineCssVars,
   onReservationClick,
   isSectorOpen,
@@ -50,6 +43,12 @@ export function TimelineRightContent({
 }: TimelineRightContentProps) {
   const { zoomPercent } = useTimelineZoom();
   const nowOffsetPx = useTimelineNowIndicator();
+  const rowDelegates = buildTimelineRowDelegates({
+    onReservationClick,
+    dndApi,
+    createApi,
+    reservationActionsApi,
+  });
 
   return (
     <div
@@ -69,19 +68,9 @@ export function TimelineRightContent({
           day={day}
           zoomPercent={zoomPercent}
           selectedReservationIds={selectedReservationIds}
-          tableById={tableById}
-          sectorById={sectorById}
-          onReservationClick={onReservationClick}
-          onEditDetails={reservationActionsApi.openEditDraft}
-          onStatusChange={reservationActionsApi.updateReservationStatus}
-          onMarkNoShow={reservationActionsApi.markReservationNoShow}
-          onCancelReservation={reservationActionsApi.requestCancelReservation}
-          onDeleteReservation={reservationActionsApi.requestDeleteReservation}
-          isReservationActionPending={reservationActionsApi.isReservationBusy}
+          rowDelegates={rowDelegates}
           isSectorOpen={isSectorOpen}
           onSectorOpenChange={onSectorOpenChange}
-          dndApi={dndApi}
-          createApi={createApi}
         />
       ))}
 

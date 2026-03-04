@@ -47,8 +47,14 @@ export async function validateQuickCreateReservationAction(
     customerName: getFormString(formData, "customerName"),
     phone: getFormString(formData, "phone"),
     partySize: getFormString(formData, "partySize"),
-    status: getFormString(formData, "status"),
-    priority: getFormString(formData, "priority"),
+    status: getFormStringWithFallback(formData, [
+      "reservationStatus",
+      "status",
+    ]),
+    priority: getFormStringWithFallback(formData, [
+      "reservationPriority",
+      "priority",
+    ]),
     notes: getFormString(formData, "notes"),
   });
 
@@ -90,4 +96,16 @@ export async function validateQuickCreateReservationAction(
 function getFormString(formData: FormData, name: string) {
   const value = formData.get(name);
   return typeof value === "string" ? value : "";
+}
+
+function getFormStringWithFallback(formData: FormData, names: string[]) {
+  for (const name of names) {
+    const value = getFormString(formData, name);
+
+    if (value) {
+      return value;
+    }
+  }
+
+  return "";
 }

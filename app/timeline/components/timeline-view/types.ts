@@ -32,6 +32,7 @@ export type TimelineDayModel = {
   dateKey: DateKey;
   dayLabel: string;
   reservationCount: number;
+  timezoneName: string;
   timelineStart: Dayjs;
   timelineEnd: Dayjs;
   sectors: TimelineSectorModel[];

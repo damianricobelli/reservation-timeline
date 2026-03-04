@@ -2,7 +2,6 @@ import dayjs, { type Dayjs } from "dayjs";
 import {
   SLOT_MINUTES,
   SLOT_WIDTH_PX,
-  TIMELINE_DURATION_MINUTES,
   TIMELINE_START_HOUR,
   TOTAL_SLOTS,
 } from "@/core/constants";
@@ -11,6 +10,7 @@ import {
   RESERVATION_PRIORITY_LABELS,
   RESERVATION_STATUS_LABELS,
 } from "@/core/types";
+import { getReservationEntityKey as getReservationEntityKeyFromDomain } from "./domain/reservation-identity";
 import type {
   ReservationsByDateAndTable,
   ReservationsByTable,
@@ -59,7 +59,7 @@ export function getReservationRenderKey(reservation: SelectionReservation) {
 }
 
 export function getReservationEntityKey(reservation: SelectionReservation) {
-  return `${reservation.id}-${reservation.createdAt}-${reservation.customer.phone}`;
+  return getReservationEntityKeyFromDomain(reservation);
 }
 
 export function getTablesBySector(tables: SelectionTable[]): TablesBySector {
@@ -72,21 +72,6 @@ export function getTablesBySector(tables: SelectionTable[]): TablesBySector {
   });
 
   return map;
-}
-
-export function getTimelineStartForDate(dateKey: DateKey) {
-  return dayjs(dateKey)
-    .hour(TIMELINE_START_HOUR)
-    .minute(0)
-    .second(0)
-    .millisecond(0);
-}
-
-export function getTimelineEndForDate(dateKey: DateKey) {
-  return getTimelineStartForDate(dateKey).add(
-    TIMELINE_DURATION_MINUTES,
-    "minute",
-  );
 }
 
 export function getMinutesFromStart(
@@ -175,18 +160,12 @@ export function toZoomScaledX(px: number) {
 export function buildReservationsByDateAndTable(
   reservations: SelectionReservation[],
   dateKeys: DateKey[],
+  timelineWindowsByDate: Map<
+    DateKey,
+    { timelineStart: Dayjs; timelineEnd: Dayjs }
+  >,
 ): ReservationsByDateAndTable {
   const result = new Map<DateKey, ReservationsByTable>();
-
-  const windowsByDate = new Map(
-    dateKeys.map((dateKey) => [
-      dateKey,
-      {
-        start: getTimelineStartForDate(dateKey),
-        end: getTimelineEndForDate(dateKey),
-      },
-    ]),
-  );
 
   dateKeys.forEach((dateKey) => {
     result.set(dateKey, new Map<SelectionTableId, SelectionReservation[]>());
@@ -197,15 +176,15 @@ export function buildReservationsByDateAndTable(
     const reservationEnd = dayjs(reservation.endTime);
 
     dateKeys.forEach((dateKey) => {
-      const timelineWindow = windowsByDate.get(dateKey);
+      const timelineWindow = timelineWindowsByDate.get(dateKey);
 
       if (!timelineWindow) {
         return;
       }
 
       if (
-        !reservationStart.isBefore(timelineWindow.end) ||
-        !reservationEnd.isAfter(timelineWindow.start)
+        !reservationStart.isBefore(timelineWindow.timelineEnd) ||
+        !reservationEnd.isAfter(timelineWindow.timelineStart)
       ) {
         return;
       }

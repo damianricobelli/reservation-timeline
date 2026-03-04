@@ -1,38 +1,17 @@
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { GRID_WIDTH_CSS, HEADER_HEIGHT_PX } from "@/core/constants";
-import type { ReservationStatus } from "@/core/types";
 import { TimelineHoursRow } from "./timeline-hours-row";
+import type { TimelineRowDelegates } from "./timeline-row-delegates";
 import { TimelineTableRow } from "./timeline-table-row";
-import type {
-  SelectionSector,
-  SelectionSectorId,
-  SelectionTable,
-  SelectionTableId,
-  TimelineDayModel,
-} from "./types";
-import type { TimelineReservationCreateApi } from "./use-timeline-reservation-create";
-import type { TimelineReservationDndApi } from "./use-timeline-reservation-dnd";
+import type { TimelineDayModel } from "./types";
 
 type TimelineRightDaySectionProps = {
   day: TimelineDayModel;
   zoomPercent: number;
   selectedReservationIds: Set<string>;
-  tableById: Map<SelectionTableId, SelectionTable>;
-  sectorById: Map<SelectionSectorId, SelectionSector>;
-  onReservationClick: (reservationKey: string) => void;
-  onEditDetails: (reservationEntityKey: string) => void;
-  onStatusChange: (
-    reservationEntityKey: string,
-    nextStatus: ReservationStatus,
-  ) => void;
-  onMarkNoShow: (reservationEntityKey: string) => void;
-  onCancelReservation: (reservationEntityKey: string) => void;
-  onDeleteReservation: (reservationEntityKey: string) => void;
-  isReservationActionPending: (reservationEntityKey: string) => boolean;
+  rowDelegates: TimelineRowDelegates;
   isSectorOpen: (sectorKey: string) => boolean;
   onSectorOpenChange: (sectorKey: string, open: boolean) => void;
-  dndApi: TimelineReservationDndApi;
-  createApi: TimelineReservationCreateApi;
 };
 
 /**
@@ -42,19 +21,9 @@ export function TimelineRightDaySection({
   day,
   zoomPercent,
   selectedReservationIds,
-  tableById,
-  sectorById,
-  onReservationClick,
-  onEditDetails,
-  onStatusChange,
-  onMarkNoShow,
-  onCancelReservation,
-  onDeleteReservation,
-  isReservationActionPending,
+  rowDelegates,
   isSectorOpen,
   onSectorOpenChange,
-  dndApi,
-  createApi,
 }: TimelineRightDaySectionProps) {
   return (
     <section
@@ -96,17 +65,7 @@ export function TimelineRightDaySection({
                       timelineStart={day.timelineStart}
                       timelineEnd={day.timelineEnd}
                       selectedReservationIds={selectedReservationIds}
-                      tableById={tableById}
-                      sectorById={sectorById}
-                      onReservationClick={onReservationClick}
-                      onEditDetails={onEditDetails}
-                      onStatusChange={onStatusChange}
-                      onMarkNoShow={onMarkNoShow}
-                      onCancelReservation={onCancelReservation}
-                      onDeleteReservation={onDeleteReservation}
-                      isReservationActionPending={isReservationActionPending}
-                      dndApi={dndApi}
-                      createApi={createApi}
+                      rowDelegates={rowDelegates}
                     />
                   ))}
                 </div>

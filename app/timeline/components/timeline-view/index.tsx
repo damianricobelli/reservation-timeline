@@ -2,20 +2,18 @@
 
 import { SnapModifier } from "@dnd-kit/abstract/modifiers";
 import { useKeyHold } from "@tanstack/react-hotkeys";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
   type Dispatch,
   type SetStateAction,
   useCallback,
   useMemo,
-  useRef,
-  useState,
   type WheelEvent,
 } from "react";
 import { SLOT_WIDTH_PX } from "@/core/constants";
 import type { ReservationTimelineRecord } from "@/core/types";
 import { timelineOptions } from "@/data/timeline-options";
-import { useTimelineQueryState } from "@/hooks/use-timeline-query-state";
+import { useTimelineFilters } from "@/hooks/use-timeline-filters";
 import { useTimelineZoom } from "@/hooks/use-timeline-zoom";
 import { getSeedSelectionForView } from "../timeline-selection";
 import { TimelineLeftPane } from "./timeline-left-pane";
@@ -33,33 +31,38 @@ import { useTimelineViewModel } from "./use-timeline-view-model";
  * Orchestrates timeline state, query filters, DnD state, and scroll bindings.
  */
 export const TimelineView = () => {
+  const queryClient = useQueryClient();
   const { data } = useSuspenseQuery(timelineOptions);
-  const serverRecordsRef = useRef(data);
-  const timelineRecordsRef = useRef(data);
-  const [, forceRerender] = useState(0);
-
-  if (serverRecordsRef.current !== data) {
-    serverRecordsRef.current = data;
-    timelineRecordsRef.current = data;
-  }
-
+  const timelineRecords = data;
   const setTimelineRecords = useCallback<
     Dispatch<SetStateAction<ReservationTimelineRecord[]>>
   >((updater) => {
-    timelineRecordsRef.current =
-      typeof updater === "function"
-        ? updater(timelineRecordsRef.current)
-        : updater;
-    forceRerender((previous) => previous + 1);
-  }, []);
-  const timelineRecords = timelineRecordsRef.current;
+    queryClient.setQueryData<ReservationTimelineRecord[]>(
+      timelineOptions.queryKey,
+      (previous) => {
+        const baseRecords = previous ?? data;
 
-  const [view] = useTimelineQueryState("view");
-  const [date] = useTimelineQueryState("date");
-  const [search] = useTimelineQueryState("search");
-  const [status] = useTimelineQueryState("status");
-  const [selectedSectorIds] = useTimelineQueryState("sectors");
-  const [selectedTableIds] = useTimelineQueryState("tables");
+        if (typeof updater === "function") {
+          return (
+            updater as (
+              current: ReservationTimelineRecord[],
+            ) => ReservationTimelineRecord[]
+          )(baseRecords);
+        }
+
+        return updater;
+      },
+    );
+  }, [data, queryClient]);
+  const { filters } = useTimelineFilters();
+  const {
+    view,
+    date,
+    search,
+    status,
+    sectors: selectedSectorIds,
+    tables: selectedTableIds,
+  } = filters;
   const { zoomPercent, zoomIn, zoomOut } = useTimelineZoom();
   const isMetaHold = useKeyHold("Meta");
   const isControlHold = useKeyHold("Control");
@@ -87,7 +90,7 @@ export const TimelineView = () => {
     handleRightPaneScroll,
   } = useSyncedVerticalScroll();
 
-  const { days, tableById, sectorById } = useTimelineViewModel(selection);
+  const { days, tableById } = useTimelineViewModel(selection);
   const dndApi = useTimelineReservationDnd({
     records: timelineRecords,
     setRecords: setTimelineRecords,
@@ -161,8 +164,6 @@ export const TimelineView = () => {
         <TimelineRightContent
           days={days}
           selectedReservationIds={selectedReservationKeys}
-          tableById={tableById}
-          sectorById={sectorById}
           timelineCssVars={timelineCssVars}
           onReservationClick={handleReservationClick}
           isSectorOpen={isSectorOpen}

@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import { useMemo } from "react";
 import type { SeedSelectionResult } from "../timeline-selection";
+import { getTimelineWindow } from "./domain/timeline-window";
 import type {
   SelectionSector,
   SelectionSectorId,
@@ -12,8 +13,6 @@ import {
   buildReservationsByDateAndTable,
   getDayReservationCount,
   getTablesBySector,
-  getTimelineEndForDate,
-  getTimelineStartForDate,
 } from "./utils";
 
 /**
@@ -33,9 +32,22 @@ export function useTimelineViewModel(
 ): TimelineViewModel {
   return useMemo(() => {
     const tablesBySector = getTablesBySector(selection.tables);
+    const timezoneByDate = new Map(
+      selection.records.map((record) => [
+        record.date,
+        record.restaurant.timezone,
+      ]),
+    );
+    const timelineWindowsByDate = new Map(
+      selection.dateKeys.map((dateKey) => {
+        const timezoneName = timezoneByDate.get(dateKey) ?? "UTC";
+        return [dateKey, getTimelineWindow(dateKey, timezoneName)];
+      }),
+    );
     const reservationsByDateAndTable = buildReservationsByDateAndTable(
       selection.reservations,
       selection.dateKeys,
+      timelineWindowsByDate,
     );
 
     const tableById = new Map(
@@ -47,6 +59,8 @@ export function useTimelineViewModel(
 
     const days: TimelineDayModel[] = selection.dateKeys.map((dateKey) => {
       const reservationsByTable = reservationsByDateAndTable.get(dateKey);
+      const timelineWindow = timelineWindowsByDate.get(dateKey);
+      const fallbackWindow = getTimelineWindow(dateKey, "UTC");
 
       const sectors = selection.sectors.map((sector) => {
         const sectorTables = tablesBySector.get(sector.id) ?? [];
@@ -66,8 +80,10 @@ export function useTimelineViewModel(
         dateKey,
         dayLabel: dayjs(dateKey).format("dddd, MMM D"),
         reservationCount: getDayReservationCount(reservationsByTable),
-        timelineStart: getTimelineStartForDate(dateKey),
-        timelineEnd: getTimelineEndForDate(dateKey),
+        timezoneName: timezoneByDate.get(dateKey) ?? "UTC",
+        timelineStart:
+          timelineWindow?.timelineStart ?? fallbackWindow.timelineStart,
+        timelineEnd: timelineWindow?.timelineEnd ?? fallbackWindow.timelineEnd,
         sectors,
       };
     });

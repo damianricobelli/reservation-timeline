@@ -5,16 +5,13 @@ import { getDragValidationMessage } from "./drag-validation-message";
 import { TimelineCreatePreviewBlock } from "./timeline-create-preview-block";
 import { getCreateValidationMessage } from "./timeline-create-validation-message";
 import { TimelineReservationBlock } from "./timeline-reservation-block";
+import type { TimelineRowDelegates } from "./timeline-row-delegates";
 import type {
   SelectionReservation,
   SelectionSector,
-  SelectionSectorId,
   SelectionTable,
-  SelectionTableId,
   TimelineDayModel,
 } from "./types";
-import type { TimelineReservationCreateApi } from "./use-timeline-reservation-create";
-import type { TimelineReservationDndApi } from "./use-timeline-reservation-dnd";
 import { getReservationEntityKey, getReservationRenderKey } from "./utils";
 
 type TimelineTableRowProps = {
@@ -25,20 +22,7 @@ type TimelineTableRowProps = {
   timelineStart: TimelineDayModel["timelineStart"];
   timelineEnd: TimelineDayModel["timelineEnd"];
   selectedReservationIds: Set<string>;
-  tableById: Map<SelectionTableId, SelectionTable>;
-  sectorById: Map<SelectionSectorId, SelectionSector>;
-  onReservationClick: (reservationKey: string) => void;
-  onEditDetails: (reservationEntityKey: string) => void;
-  onStatusChange: (
-    reservationEntityKey: string,
-    nextStatus: SelectionReservation["status"],
-  ) => void;
-  onMarkNoShow: (reservationEntityKey: string) => void;
-  onCancelReservation: (reservationEntityKey: string) => void;
-  onDeleteReservation: (reservationEntityKey: string) => void;
-  isReservationActionPending: (reservationEntityKey: string) => boolean;
-  dndApi: TimelineReservationDndApi;
-  createApi: TimelineReservationCreateApi;
+  rowDelegates: TimelineRowDelegates;
 };
 
 /**
@@ -52,18 +36,9 @@ export function TimelineTableRow({
   timelineStart,
   timelineEnd,
   selectedReservationIds,
-  tableById,
-  sectorById,
-  onReservationClick,
-  onEditDetails,
-  onStatusChange,
-  onMarkNoShow,
-  onCancelReservation,
-  onDeleteReservation,
-  isReservationActionPending,
-  dndApi,
-  createApi,
+  rowDelegates,
 }: TimelineTableRowProps) {
+  const { dndApi, createApi } = rowDelegates;
   const droppable = dndApi.getRowDroppableAttributes(dateKey, table.id);
   const { ref } = useDroppable({
     id: droppable.id,
@@ -86,7 +61,8 @@ export function TimelineTableRow({
         const reservationKey = getReservationRenderKey(reservation);
         const reservationEntityKey = getReservationEntityKey(reservation);
         const isSelected = selectedReservationIds.has(reservationKey);
-        const actionPending = isReservationActionPending(reservationEntityKey);
+        const actionPending =
+          rowDelegates.isReservationActionPending(reservationEntityKey);
         const draggable = dndApi.getReservationDraggableAttributes(reservation);
         const resizePreview = dndApi.getResizePreview(reservation);
         const blockReservation = resizePreview?.reservation ?? reservation;
@@ -97,20 +73,18 @@ export function TimelineTableRow({
             reservation={blockReservation}
             reservationKey={reservationKey}
             reservationEntityKey={reservationEntityKey}
-            rowTable={table}
-            rowSector={sector}
+            tableName={table.name}
+            sectorName={sector.name}
             timelineStart={timelineStart}
             timelineEnd={timelineEnd}
             isSelected={isSelected}
             actionPending={actionPending}
-            onClick={onReservationClick}
-            onEditDetails={onEditDetails}
-            onStatusChange={onStatusChange}
-            onMarkNoShow={onMarkNoShow}
-            onCancelReservation={onCancelReservation}
-            onDeleteReservation={onDeleteReservation}
-            tableById={tableById}
-            sectorById={sectorById}
+            onClick={rowDelegates.onReservationClick}
+            onEditDetails={rowDelegates.onEditDetails}
+            onStatusChange={rowDelegates.onStatusChange}
+            onMarkNoShow={rowDelegates.onMarkNoShow}
+            onCancelReservation={rowDelegates.onCancelReservation}
+            onDeleteReservation={rowDelegates.onDeleteReservation}
             dragId={draggable.id}
             dragData={draggable.data}
             resizeStartHandleProps={dndApi.getResizeHandleProps(
