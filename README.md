@@ -898,3 +898,23 @@ La interfaz de este challenge **no está preparada para funcionar correctamente 
 ### Bonus y alcance del entregable
 
 Los distintos **puntos bonus** del challenge no han sido tenidos en cuenta en esta entrega. Estoy en proceso de otros tres challenges en paralelo y no he tenido tiempo de cerrar todo lo opcional. Preferí entregar lo antes posible el core para poder discutir más detalles cuanto antes, dado que es uno de los challenges más extensos.
+
+## Screenshots
+
+Dropdown menu para filtros
+<img width="1512" height="892" alt="image" src="https://github.com/user-attachments/assets/1774f76b-5d9e-41c9-989c-076aa96ae279" />
+
+Badge de cantidad de filtros
+<img width="218" height="179" alt="image" src="https://github.com/user-attachments/assets/bd91cb4e-71fe-4b69-a94a-2d4fc530a308" />
+
+Calendario
+<img width="1510" height="893" alt="image" src="https://github.com/user-attachments/assets/8e4de453-ab96-46e2-9e6e-1294e086732c" />
+
+Collapse de mesas
+https://github.com/user-attachments/assets/40bf94ff-dac8-42c7-9518-14effb5da1e7
+
+Tooltip de información de reserva
+<img width="487" height="360" alt="image" src="https://github.com/user-attachments/assets/1078c592-fa47-42fb-ba4b-d06d4d993b8e" />
+
+DnD + Creación de reserva + Errores realtime 
+
