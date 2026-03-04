@@ -36,24 +36,27 @@ export const TimelineView = () => {
   const timelineRecords = data;
   const setTimelineRecords = useCallback<
     Dispatch<SetStateAction<ReservationTimelineRecord[]>>
-  >((updater) => {
-    queryClient.setQueryData<ReservationTimelineRecord[]>(
-      timelineOptions.queryKey,
-      (previous) => {
-        const baseRecords = previous ?? data;
+  >(
+    (updater) => {
+      queryClient.setQueryData<ReservationTimelineRecord[]>(
+        timelineOptions.queryKey,
+        (previous) => {
+          const baseRecords = previous ?? data;
 
-        if (typeof updater === "function") {
-          return (
-            updater as (
-              current: ReservationTimelineRecord[],
-            ) => ReservationTimelineRecord[]
-          )(baseRecords);
-        }
+          if (typeof updater === "function") {
+            return (
+              updater as (
+                current: ReservationTimelineRecord[],
+              ) => ReservationTimelineRecord[]
+            )(baseRecords);
+          }
 
-        return updater;
-      },
-    );
-  }, [data, queryClient]);
+          return updater;
+        },
+      );
+    },
+    [data, queryClient],
+  );
   const { filters } = useTimelineFilters();
   const {
     view,

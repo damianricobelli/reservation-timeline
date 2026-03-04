@@ -16,9 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { TimelineReservationContextMenu } from "./timeline-reservation-context-menu";
 import { TimelineReservationSummaryCard } from "./timeline-reservation-summary-card";
-import type {
-  SelectionReservation,
-} from "./types";
+import type { SelectionReservation } from "./types";
 import type {
   ReservationDraggableData,
   ResizeHandleProps,

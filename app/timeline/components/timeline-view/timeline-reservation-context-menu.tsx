@@ -70,7 +70,6 @@ export function TimelineReservationContextMenu({
       <ContextMenuTrigger className="contents">{children}</ContextMenuTrigger>
 
       <ContextMenuContent alignOffset={6} className="min-w-72">
-
         <ContextMenuGroup>
           <ContextMenuItem
             disabled={disabled}

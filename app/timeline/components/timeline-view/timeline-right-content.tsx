@@ -5,10 +5,7 @@ import { TimelineReservationConfirmModal } from "./timeline-reservation-confirm-
 import { TimelineReservationEditModal } from "./timeline-reservation-edit-modal";
 import { TimelineRightDaySection } from "./timeline-right-day-section";
 import { buildTimelineRowDelegates } from "./timeline-row-delegates";
-import type {
-  TimelineCssVars,
-  TimelineDayModel,
-} from "./types";
+import type { TimelineCssVars, TimelineDayModel } from "./types";
 import { useTimelineNowIndicator } from "./use-timeline-now-indicator";
 import type { TimelineReservationActionsApi } from "./use-timeline-reservation-actions";
 import type { TimelineReservationCreateApi } from "./use-timeline-reservation-create";
