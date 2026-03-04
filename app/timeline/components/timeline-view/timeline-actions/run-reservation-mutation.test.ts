@@ -34,9 +34,9 @@ describe("runReservationMutation", () => {
     expect(mutate).toHaveBeenCalledTimes(1);
     expect(clearPendingAction).not.toHaveBeenCalled();
 
-    const resolver = resolveMutate as ((
-      value: { updatedAt: string },
-    ) => void) | null;
+    const resolver = resolveMutate as
+      | ((value: { updatedAt: string }) => void)
+      | null;
     resolver?.({ updatedAt: "2025-10-14T10:10:00-03:00" });
     await runPromise;
 
