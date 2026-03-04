@@ -24,6 +24,8 @@ const updateDetailsSchema = z.object({
     .min(1, "Party size must be at least 1."),
   status: z.enum(RESERVATION_STATUS_VALUES),
   priority: z.enum(RESERVATION_PRIORITY_VALUES),
+  from: z.string().trim().min(1, "Start time is required."),
+  to: z.string().trim().min(1, "End time is required."),
   notes: z.string().trim().optional(),
 });
 
@@ -90,6 +92,8 @@ export async function updateTimelineReservationDetailsAction(
     partySize: number;
     status: (typeof RESERVATION_STATUS_VALUES)[number];
     priority: (typeof RESERVATION_PRIORITY_VALUES)[number];
+    from: string;
+    to: string;
     notes?: string;
     updatedAt: string;
   }>
@@ -112,6 +116,8 @@ export async function updateTimelineReservationDetailsAction(
       partySize: parsed.data.partySize,
       status: parsed.data.status,
       priority: parsed.data.priority,
+      from: parsed.data.from,
+      to: parsed.data.to,
       notes: parsed.data.notes?.trim() || undefined,
       updatedAt: dayjs().format(),
     },

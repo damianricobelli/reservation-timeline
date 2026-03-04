@@ -67,7 +67,20 @@ export function useCreateDraft({
       const phone = input.phone.trim();
       const notes = input.notes?.trim();
       const partySize = input.partySize;
-      const durationMinutes = draftState.reservation.durationMinutes;
+      const startTime = mergeTimeIntoIsoDate(
+        draftState.reservation.startTime,
+        input.from,
+      );
+      let endTime = mergeTimeIntoIsoDate(
+        draftState.reservation.startTime,
+        input.to,
+      );
+
+      if (!endTime.isAfter(startTime)) {
+        endTime = endTime.add(1, "day");
+      }
+
+      const durationMinutes = endTime.diff(startTime, "minute");
 
       if (!customerName || !phone) {
         return {
@@ -99,8 +112,6 @@ export function useCreateDraft({
             "Timeline data changed while creating this reservation. Please try again.",
         };
       }
-      const startTime = dayjs(draftState.reservation.startTime);
-      const endTime = startTime.add(durationMinutes, "minute");
       const candidate = {
         ...draftState.reservation,
         customer: {
@@ -175,6 +186,13 @@ export function useCreateDraft({
     return {
       dateKey: draftState.dateKey,
       table: draftState.table,
+      serviceHours: draftState.targetRecord.restaurant.serviceHours,
+      occupiedTimeRanges: draftState.targetRecord.reservations
+        .filter((reservation) => reservation.tableId === draftState.table.id)
+        .map((reservation) => ({
+          start: dayjs(reservation.startTime).format("HH:mm"),
+          end: dayjs(reservation.endTime).format("HH:mm"),
+        })),
       reservation: draftState.reservation,
     };
   }, [draftState]);
@@ -185,4 +203,16 @@ export function useCreateDraft({
     queueOpenDraft,
     submitDraft,
   };
+}
+
+function mergeTimeIntoIsoDate(baseIsoDate: string, time: string) {
+  const [hourPart, minutePart] = time.split(":");
+  const hours = Number.parseInt(hourPart ?? "0", 10);
+  const minutes = Number.parseInt(minutePart ?? "0", 10);
+
+  return dayjs(baseIsoDate)
+    .hour(Number.isNaN(hours) ? 0 : hours)
+    .minute(Number.isNaN(minutes) ? 0 : minutes)
+    .second(0)
+    .millisecond(0);
 }

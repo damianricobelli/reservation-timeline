@@ -1,5 +1,7 @@
 "use client";
 
+import dayjs from "dayjs";
+import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -17,7 +19,6 @@ import type {
   TimelineReservationEditSubmitInput,
   TimelineReservationEditSubmitResult,
 } from "./use-timeline-reservation-actions";
-import { formatTimeRange } from "./utils";
 
 type TimelineReservationEditModalProps = {
   draft: TimelineReservationEditDraft | null;
@@ -72,11 +73,33 @@ type TimelineReservationEditModalFormProps = {
   ) => Promise<TimelineReservationEditSubmitResult>;
 };
 
+function formatDurationBadge(durationMinutes: number) {
+  if (durationMinutes < 60) {
+    return `${durationMinutes} min`;
+  }
+
+  const hours = Math.floor(durationMinutes / 60);
+  const minutes = durationMinutes % 60;
+
+  if (minutes === 0) {
+    return `${hours} h`;
+  }
+
+  return `${hours} h ${minutes} min`;
+}
+
 function TimelineReservationEditModalForm({
   draft,
   onClose,
   onSubmit,
 }: TimelineReservationEditModalFormProps) {
+  const defaultFrom = dayjs(draft.reservation.startTime).format("HH:mm");
+  const defaultTo = dayjs(draft.reservation.endTime).format("HH:mm");
+  const [headerFrom, setHeaderFrom] = useState(defaultFrom);
+  const [headerTo, setHeaderTo] = useState(defaultTo);
+  const [headerDurationMinutes, setHeaderDurationMinutes] = useState(
+    draft.reservation.durationMinutes,
+  );
   const [state, formAction, isPending] = useTimelineReservationFormAction({
     onSubmit: async (input) =>
       onSubmit(input as TimelineReservationEditSubmitInput),
@@ -97,15 +120,14 @@ function TimelineReservationEditModalForm({
             Edit Reservation
           </AlertDialogTitle>
           <p className="text-sm text-slate-600">
-            {draft.table?.name ?? "Table"} ·{" "}
-            {formatTimeRange(draft.reservation)}
+            {draft.table?.name ?? "Table"} · {headerFrom}-{headerTo}
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="rounded-full">
               Capacity: {tableCapacityLabel}
             </Badge>
             <Badge variant="outline" className="rounded-full">
-              Duration: {draft.reservation.durationMinutes} min
+              Duration: {formatDurationBadge(headerDurationMinutes)}
             </Badge>
           </div>
         </AlertDialogHeader>
@@ -120,11 +142,22 @@ function TimelineReservationEditModalForm({
             partySize: draft.reservation.partySize,
             status: draft.reservation.status,
             priority: draft.reservation.priority,
+            from: defaultFrom,
+            to: defaultTo,
             notes: draft.reservation.notes,
           }}
+          serviceHours={draft.serviceHours}
+          occupiedTimeRanges={draft.occupiedTimeRanges}
           capacityMin={tableCapacityMin}
           capacityMax={tableCapacityMax}
           fieldErrors={state.fieldErrors}
+          onTimeRangeChange={({ from, to, durationMinutes }) => {
+            setHeaderFrom(from || defaultFrom);
+            setHeaderTo(to || defaultTo);
+            setHeaderDurationMinutes(
+              durationMinutes ?? draft.reservation.durationMinutes,
+            );
+          }}
         />
 
         {state.message ? (

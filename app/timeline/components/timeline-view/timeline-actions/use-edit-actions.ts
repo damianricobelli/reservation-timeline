@@ -1,9 +1,11 @@
+import dayjs from "dayjs";
 import type { Dispatch, SetStateAction } from "react";
 import { useCallback } from "react";
 import { updateTimelineReservationDetailsAction } from "@/app/timeline/actions/mutate-timeline-reservation";
 import type { ReservationTimelineRecord } from "@/core/types";
 import { replaceReservationByEntityKey } from "../timeline-dnd/records";
 import type { SelectionReservation, SelectionTable } from "../types";
+import { getReservationEntityKey } from "../utils";
 import { runReservationMutation } from "./run-reservation-mutation";
 import type {
   PendingReservationAction,
@@ -17,6 +19,7 @@ import type {
 } from "./types";
 
 type UseEditActionsInput = {
+  records: ReservationTimelineRecord[];
   editDraft: TimelineReservationEditDraft | null;
   dispatch: Dispatch<ReservationActionsEvent>;
   getReservationByEntityKey: (
@@ -40,6 +43,7 @@ type UseEditActionsResult = {
 };
 
 export function useEditActions({
+  records,
   editDraft,
   dispatch,
   getReservationByEntityKey,
@@ -56,16 +60,37 @@ export function useEditActions({
         return;
       }
 
+      const record = records.find((timelineRecord) =>
+        timelineRecord.reservations.some(
+          (timelineReservation) =>
+            getReservationEntityKey(timelineReservation) ===
+            reservationEntityKey,
+        ),
+      );
+
       dispatch({
         type: "open-edit",
         draft: {
           reservationEntityKey,
           reservation,
           table: tableById.get(reservation.tableId),
+          serviceHours: record?.restaurant.serviceHours ?? [],
+          occupiedTimeRanges:
+            record?.reservations
+              .filter(
+                (timelineReservation) =>
+                  timelineReservation.tableId === reservation.tableId &&
+                  getReservationEntityKey(timelineReservation) !==
+                    reservationEntityKey,
+              )
+              .map((timelineReservation) => ({
+                start: dayjs(timelineReservation.startTime).format("HH:mm"),
+                end: dayjs(timelineReservation.endTime).format("HH:mm"),
+              })) ?? [],
         },
       });
     },
-    [dispatch, getReservationByEntityKey, tableById],
+    [dispatch, getReservationByEntityKey, records, tableById],
   );
 
   const closeEditDraft = useCallback(() => {
@@ -129,6 +154,19 @@ export function useEditActions({
             return result.data;
           },
           onSuccess: (data) => {
+            const nextStartTime = mergeTimeIntoIsoDate(
+              reservation.startTime,
+              data.from,
+            );
+            let nextEndTime = mergeTimeIntoIsoDate(
+              reservation.startTime,
+              data.to,
+            );
+
+            if (!nextEndTime.isAfter(nextStartTime)) {
+              nextEndTime = nextEndTime.add(1, "day");
+            }
+
             setRecords((previous) =>
               replaceReservationByEntityKey(previous, reservationEntityKey, {
                 ...reservation,
@@ -138,6 +176,9 @@ export function useEditActions({
                   phone: data.phone,
                 },
                 partySize: data.partySize,
+                startTime: nextStartTime.format(),
+                endTime: nextEndTime.format(),
+                durationMinutes: nextEndTime.diff(nextStartTime, "minute"),
                 status: data.status,
                 priority: data.priority,
                 notes: data.notes,
@@ -181,4 +222,16 @@ export function useEditActions({
     closeEditDraft,
     submitEditDraft,
   };
+}
+
+function mergeTimeIntoIsoDate(baseIsoDate: string, time: string) {
+  const [hourPart, minutePart] = time.split(":");
+  const hours = Number.parseInt(hourPart ?? "0", 10);
+  const minutes = Number.parseInt(minutePart ?? "0", 10);
+
+  return dayjs(baseIsoDate)
+    .hour(Number.isNaN(hours) ? 0 : hours)
+    .minute(Number.isNaN(minutes) ? 0 : minutes)
+    .second(0)
+    .millisecond(0);
 }

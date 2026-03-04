@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type {
   ReservationStatus,
   ReservationTimelineRecord,
+  ServiceHour,
 } from "@/core/types";
 import type {
   SelectionReservation,
@@ -18,6 +19,8 @@ export type TimelineReservationEditSubmitInput = {
   partySize: number;
   status: SelectionReservation["status"];
   priority: SelectionReservation["priority"];
+  from: string;
+  to: string;
   notes?: string;
 };
 
@@ -32,6 +35,8 @@ export type TimelineReservationEditDraft = {
   reservationEntityKey: string;
   reservation: SelectionReservation;
   table?: SelectionTable;
+  serviceHours: ServiceHour[];
+  occupiedTimeRanges: { start: string; end: string }[];
 };
 
 export type TimelineReservationConfirmationDraft = {

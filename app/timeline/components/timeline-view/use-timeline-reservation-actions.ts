@@ -73,6 +73,7 @@ export function useTimelineReservationActions({
   });
 
   const { openEditDraft, closeEditDraft, submitEditDraft } = useEditActions({
+    records,
     editDraft: state.editDraft,
     dispatch,
     getReservationByEntityKey,

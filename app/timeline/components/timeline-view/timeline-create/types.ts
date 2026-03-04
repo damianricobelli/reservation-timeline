@@ -5,7 +5,12 @@ import type {
   RefObject,
   SetStateAction,
 } from "react";
-import type { DateKey, ReservationTimelineRecord, TableId } from "@/core/types";
+import type {
+  DateKey,
+  ReservationTimelineRecord,
+  ServiceHour,
+  TableId,
+} from "@/core/types";
 import type { SelectionReservation, SelectionTable } from "../types";
 import type { TimelineCreateValidationReason } from "./validation";
 
@@ -33,6 +38,8 @@ export type ActiveCreateState = {
 export type TimelineCreateDraft = {
   dateKey: DateKey;
   table: SelectionTable;
+  serviceHours: ServiceHour[];
+  occupiedTimeRanges: { start: string; end: string }[];
   reservation: SelectionReservation;
 };
 
@@ -52,6 +59,8 @@ export type TimelineQuickCreateSubmitInput = {
   partySize: number;
   status: SelectionReservation["status"];
   priority: SelectionReservation["priority"];
+  from: string;
+  to: string;
   notes?: string;
 };
 

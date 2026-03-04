@@ -15,6 +15,8 @@ const quickCreateReservationSchema = z.object({
     .min(1, "Party size must be at least 1."),
   status: z.enum(RESERVATION_STATUS_VALUES),
   priority: z.enum(RESERVATION_PRIORITY_VALUES),
+  from: z.string().trim().min(1, "Start time is required."),
+  to: z.string().trim().min(1, "End time is required."),
   notes: z.string().trim().optional(),
 });
 
@@ -24,7 +26,14 @@ export type QuickCreateReservationInput = z.infer<
 
 export type QuickCreateReservationFieldErrors = Partial<
   Record<
-    "customerName" | "phone" | "partySize" | "status" | "priority" | "notes",
+    | "customerName"
+    | "phone"
+    | "partySize"
+    | "status"
+    | "priority"
+    | "from"
+    | "to"
+    | "notes",
     string
   >
 >;
@@ -55,6 +64,8 @@ export async function validateQuickCreateReservationAction(
       "reservationPriority",
       "priority",
     ]),
+    from: getFormStringWithFallback(formData, ["from", "reservationFrom"]),
+    to: getFormStringWithFallback(formData, ["to", "reservationTo"]),
     notes: getFormString(formData, "notes"),
   });
 
@@ -70,6 +81,8 @@ export async function validateQuickCreateReservationAction(
         field === "partySize" ||
         field === "status" ||
         field === "priority" ||
+        field === "from" ||
+        field === "to" ||
         field === "notes"
       ) {
         fieldErrors[field] = issue.message;
