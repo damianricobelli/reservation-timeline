@@ -109,7 +109,7 @@ function TimelineQuickCreateModalForm({
       <div className="border-b border-slate-200/80 bg-slate-50/70 px-6 py-5">
         <AlertDialogHeader className="items-start gap-2 text-left">
           <AlertDialogTitle className="text-lg leading-none font-semibold">
-            Quick Create Reservation
+            Create Reservation
           </AlertDialogTitle>
           <p className="text-sm text-slate-600">
             {draft.table.name} · {headerFrom}-{headerTo}
