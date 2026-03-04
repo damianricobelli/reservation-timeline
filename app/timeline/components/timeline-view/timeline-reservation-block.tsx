@@ -18,10 +18,6 @@ import { TimelineReservationContextMenu } from "./timeline-reservation-context-m
 import { TimelineReservationSummaryCard } from "./timeline-reservation-summary-card";
 import type {
   SelectionReservation,
-  SelectionSector,
-  SelectionSectorId,
-  SelectionTable,
-  SelectionTableId,
 } from "./types";
 import type {
   ReservationDraggableData,
@@ -39,8 +35,8 @@ type TimelineReservationBlockProps = {
   reservation: SelectionReservation;
   reservationKey: string;
   reservationEntityKey: string;
-  rowTable: SelectionTable;
-  rowSector: SelectionSector;
+  tableName: string;
+  sectorName: string;
   timelineStart: Dayjs;
   timelineEnd: Dayjs;
   isSelected: boolean;
@@ -54,8 +50,6 @@ type TimelineReservationBlockProps = {
   onMarkNoShow: (reservationEntityKey: string) => void;
   onCancelReservation: (reservationEntityKey: string) => void;
   onDeleteReservation: (reservationEntityKey: string) => void;
-  tableById: Map<SelectionTableId, SelectionTable>;
-  sectorById: Map<SelectionSectorId, SelectionSector>;
   dragId: string;
   dragData: ReservationDraggableData;
   resizeStartHandleProps: ResizeHandleProps;
@@ -87,8 +81,8 @@ export function TimelineReservationBlock({
   reservation,
   reservationKey,
   reservationEntityKey,
-  rowTable,
-  rowSector,
+  tableName,
+  sectorName,
   timelineStart,
   timelineEnd,
   isSelected,
@@ -99,8 +93,6 @@ export function TimelineReservationBlock({
   onMarkNoShow,
   onCancelReservation,
   onDeleteReservation,
-  tableById,
-  sectorById,
   dragId,
   dragData,
   resizeStartHandleProps,
@@ -124,17 +116,12 @@ export function TimelineReservationBlock({
 
   if (blockLayout.hidden) return null;
 
-  const reservationTable = tableById.get(reservation.tableId);
-  const reservationSector = sectorById.get(reservationTable?.sectorId ?? "");
-
   return (
     <>
       <Tooltip>
         <TimelineReservationContextMenu
           reservation={reservation}
           reservationEntityKey={reservationEntityKey}
-          tableName={reservationTable?.name ?? rowTable.name}
-          sectorName={reservationSector?.name ?? rowSector.name}
           disabled={actionPending}
           onEditDetails={onEditDetails}
           onStatusChange={onStatusChange}
@@ -194,19 +181,18 @@ export function TimelineReservationBlock({
         <TooltipContent>
           <TimelineReservationSummaryCard
             reservation={reservation}
-            tableName={reservationTable?.name ?? rowTable.name}
-            sectorName={reservationSector?.name ?? rowSector.name}
+            tableName={tableName}
+            sectorName={sectorName}
           />
         </TooltipContent>
       </Tooltip>
 
       {invalid && validationMessage ? (
         <div
-          className="pointer-events-none absolute z-30 whitespace-nowrap rounded-md border border-rose-400 bg-rose-50 px-2 py-1 text-[11px] font-medium text-rose-700 shadow-sm"
+          className="pointer-events-none absolute z-30 max-w-[220px] -translate-x-1/2 truncate rounded-md border border-rose-400 bg-rose-50 px-2 py-1 text-[11px] font-medium text-rose-700 shadow-sm"
           style={{
             left: toZoomScaledX(blockLayout.left + blockLayout.width / 2),
-            top: ROW_HEIGHT_PX - RESERVATION_INSET_Y + 4,
-            transform: "translateX(-50%)",
+            top: ROW_HEIGHT_PX + 2,
           }}
         >
           {validationMessage}

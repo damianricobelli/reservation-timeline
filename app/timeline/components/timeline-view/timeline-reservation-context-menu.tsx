@@ -25,7 +25,6 @@ import {
   RESERVATION_STATUS_VALUES,
   type ReservationStatus,
 } from "@/core/types";
-import { TimelineReservationSummaryCard } from "./timeline-reservation-summary-card";
 import type { SelectionReservation } from "./types";
 
 const STATUS_DOT_CLASS_BY_VALUE: Record<ReservationStatus, string> = {
@@ -40,8 +39,6 @@ const STATUS_DOT_CLASS_BY_VALUE: Record<ReservationStatus, string> = {
 type TimelineReservationContextMenuProps = {
   reservation: SelectionReservation;
   reservationEntityKey: string;
-  tableName: string;
-  sectorName: string;
   disabled?: boolean;
   onEditDetails: (reservationEntityKey: string) => void;
   onStatusChange: (
@@ -60,8 +57,6 @@ type TimelineReservationContextMenuProps = {
 export function TimelineReservationContextMenu({
   reservation,
   reservationEntityKey,
-  tableName,
-  sectorName,
   disabled = false,
   onEditDetails,
   onStatusChange,
@@ -75,15 +70,6 @@ export function TimelineReservationContextMenu({
       <ContextMenuTrigger className="contents">{children}</ContextMenuTrigger>
 
       <ContextMenuContent alignOffset={6} className="min-w-72">
-        <div className="px-1 pb-0.5">
-          <TimelineReservationSummaryCard
-            reservation={reservation}
-            tableName={tableName}
-            sectorName={sectorName}
-          />
-        </div>
-
-        <ContextMenuSeparator className="my-1.5" />
 
         <ContextMenuGroup>
           <ContextMenuItem
