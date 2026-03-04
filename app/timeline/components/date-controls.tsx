@@ -1,6 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
 import dayjs from "dayjs";
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ function parseDateParam(value: string): Date | null {
 }
 
 function toDateParam(value: Date) {
-  return format(value, "yyyy-MM-dd");
+  return dayjs(value).format("YYYY-MM-DD");
 }
 
 export function DateControls() {
@@ -87,7 +86,11 @@ export function DateControls() {
           }
         >
           <CalendarIcon />
-          {selectedDate ? format(selectedDate, "MM/dd/yy") : <span>Date</span>}
+          {selectedDate ? (
+            dayjs(selectedDate).format("MM/DD/YY")
+          ) : (
+            <span>Date</span>
+          )}
         </PopoverTrigger>
         <PopoverContent align="end" className="w-auto p-0">
           <Calendar
