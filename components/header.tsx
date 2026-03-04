@@ -10,7 +10,7 @@ export const Header = () => {
             <UtensilsCrossedIcon className="siz-4 md:size-5 text-white" />
           </div>
           <h1 className="text-base md:text-xl font-bold text-slate-900 leading-tight">
-            Timeline
+            Reservation Timeline
           </h1>
         </div>
       </div>
