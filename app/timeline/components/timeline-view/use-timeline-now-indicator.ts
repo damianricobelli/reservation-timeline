@@ -17,16 +17,29 @@ export function useTimelineNowIndicator(): number | null {
   useEffect(() => {
     let intervalId: ReturnType<typeof setInterval> | null = null;
 
-    const timeoutId = setTimeout(() => {
+    const scheduleNextTick = () => {
       setTick(Date.now());
       intervalId = setInterval(() => setTick(Date.now()), 60_000);
-    }, msToNextMinute());
+    };
 
+    const timeoutId = setTimeout(scheduleNextTick, msToNextMinute());
     setTick(Date.now());
+
+    // When the tab is backgrounded or the machine sleeps, browsers throttle or pause
+    // setTimeout/setInterval. On visibility change to visible, sync the indicator
+    // to current time so it doesn't stay stale until the next interval tick.
+    const onVisibilityChange = () => {
+      console.log("visibilitychange", document.visibilityState);
+      if (document.visibilityState === "visible") {
+        setTick(Date.now());
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
       clearTimeout(timeoutId);
       if (intervalId) clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, []);
 
