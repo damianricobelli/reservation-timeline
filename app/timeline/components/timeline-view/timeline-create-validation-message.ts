@@ -1,9 +1,4 @@
-import type { MoveValidationReason } from "@/core/types";
-
-export type TimelineCreateValidationReason =
-  | MoveValidationReason
-  | "duration_too_short"
-  | "duration_too_long";
+import type { TimelineCreateValidationReason } from "./timeline-create/validation";
 
 /**
  * Maps create-flow validation reasons to user-facing error copy.
