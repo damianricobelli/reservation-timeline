@@ -1,6 +1,6 @@
 # Reservation Timeline
 
-Aplicación de timeline de reservas con detección de conflictos en tiempo real.
+App web de timeline de reservas con detección de conflictos en tiempo real
 
 ---
 
@@ -32,6 +32,8 @@ Para correr el proyecto en local:
 bun i
 bun dev
 ```
+
+Para cambiar el tamaño del record de la data del mockup, tan solo hay que modificar la constante de `DEFAULT_TIMELINE_COUNT`
 
 La app queda disponible en **[http://localhost:3000](http://localhost:3000)**.
 
