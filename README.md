@@ -158,10 +158,10 @@ La única “fuente de verdad” para los registros del timeline es la caché de
 ```mermaid
 flowchart LR
   subgraph Sources["Fuentes de estado"]
-    RQ["React Query cache\n(timeline records)"]
-    URL["nuqs\n(view, date, filters, zoom)"]
-    LOCAL["useState\n(selection, sectors, DnD, create)"]
-    REDUCER["useReducer\n(edit/confirm modals)"]
+    RQ["React Query cache<br/>(timeline records)"]
+    URL["nuqs<br/>(view, date, filters, zoom)"]
+    LOCAL["useState<br/>(selection, sectors, DnD, create)"]
+    REDUCER["useReducer<br/>(edit/confirm modals)"]
   end
   subgraph Consumers["Consumidores"]
     View[TimelineView]
@@ -169,6 +169,7 @@ flowchart LR
     View --> URL
     View --> LOCAL
     View --> REDUCER
+  end
 ```
 
 
@@ -223,6 +224,7 @@ flowchart TB
     C2[Pointer en row → draft]
     C3[Modal + getCreateValidationReason]
     C1 --> C2 --> C3
+  end
 ```
 
 
@@ -273,26 +275,6 @@ flowchart LR
 ## Orden de validación
 
 Las reglas se evalúan **en secuencia**. La primera que falla determina el resultado; no se siguen comprobando el resto. Eso permite mensajes claros y evita trabajo innecesario.
-
-```mermaid
-sequenceDiagram
-  participant Caller
-  participant getCreateValidationReason
-  participant getMoveValidationReason
-
-  Note over Caller: Crear reserva
-  Caller->>getCreateValidationReason: candidate, targetRecord, ...
-  getCreateValidationReason->>getCreateValidationReason: ¿duración 30–360 y %15?
-  alt duración inválida
-    getCreateValidationReason-->>Caller: duration_too_short / duration_too_long / outside_timeline
-  else duración ok
-    getCreateValidationReason->>getMoveValidationReason: mismo candidate
-    getMoveValidationReason->>getMoveValidationReason: 1. timeline 2. capacity 3. service hours 4. overlap
-    getMoveValidationReason-->>getCreateValidationReason: reason | undefined
-    getCreateValidationReason-->>Caller: reason | undefined
-```
-
-
 
 ## Algoritmo 1: Detección de solapamiento (overlap)
 
@@ -752,13 +734,14 @@ return {
 ```mermaid
 flowchart LR
   subgraph Drag
-    A[Pointer move] --> B[Snap offset 15min]
+    A[Pointer move] --> B[Snap offset 15 min]
     B --> C[Clamp a ventana]
     C --> D[Build candidate]
     D --> E[getMoveValidationReason]
     E --> F{reason?}
-    F -->|undefined| G[Preview válido]
-    F -->|overlap/etc| H[Preview inválido]
+    F -->|undefined| G[Preview valido]
+    F -->|overlap etc| H[Preview invalido]
+  end
 ```
 
 
@@ -857,8 +840,9 @@ flowchart TD
     SH["serviceHours"] --> TOG["timeOptionGroups"]
     TOG --> FROM["fromOptionGroups: filtrado por duración + !hasIntervalConflict"]
     TOG --> TO["toOptionGroups: filtrado por duración + !hasIntervalConflict"]
-    FROM --> UI["Select From"]
-    TO --> UI2["Select To"]
+    FROM --> UI[Select From]
+    TO --> UITo[Select To]
+  end
 ```
 
 
