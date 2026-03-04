@@ -909,7 +909,7 @@ Los distintos **bonus** del challenge no han sido tenidos en cuenta en este repo
 <img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/54a40739-1e4c-498a-bc87-a6c796282169" />
 <img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/6348de92-253c-42a8-a172-5ed687f9b4fd" />
 <img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/1b63e75c-9379-4feb-bcd0-c4b47762d4e5" />
-
+<img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/34d7a1f0-0b44-4a16-b07a-5ba2cce54537" />
 
 
 
