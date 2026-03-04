@@ -12,6 +12,7 @@ import {
   type TableId,
   type TimelineViewMode,
 } from "@/core/types";
+import { normalizeSelectionForQuery } from "./filter-menu/selection-utils";
 
 type ViewMode = TimelineViewMode;
 
@@ -110,24 +111,6 @@ function toRecordMap<Id extends string, T extends { id: Id }>(rows: T[]) {
   return map;
 }
 
-function normalizeFilterIds<Id extends string>(
-  selectedIds: Id[] | undefined,
-  allIds: Id[],
-) {
-  if (!selectedIds || selectedIds.length === 0 || allIds.length === 0) {
-    return [];
-  }
-
-  const selectedSet = new Set(selectedIds);
-  const normalized = allIds.filter((id) => selectedSet.has(id));
-
-  if (normalized.length === 0 || normalized.length === allIds.length) {
-    return [];
-  }
-
-  return normalized;
-}
-
 export function getViewDateKeys(
   viewMode: ViewMode,
   baseDate: DateKey | Date | Dayjs = dayjs(),
@@ -177,8 +160,8 @@ export function getSeedSelectionForView(
   let tables = Array.from(toRecordMap(allTables).values());
   let reservations = allReservations;
 
-  const normalizedSectorIds = normalizeFilterIds(
-    filters.sectorIds,
+  const normalizedSectorIds = normalizeSelectionForQuery(
+    filters.sectorIds ?? [],
     sectors.map((sector) => sector.id),
   );
 
@@ -187,8 +170,8 @@ export function getSeedSelectionForView(
     tables = tables.filter((table) => sectorSet.has(table.sectorId));
   }
 
-  const normalizedTableIds = normalizeFilterIds(
-    filters.tableIds,
+  const normalizedTableIds = normalizeSelectionForQuery(
+    filters.tableIds ?? [],
     tables.map((table) => table.id),
   );
 
