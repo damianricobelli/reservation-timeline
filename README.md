@@ -897,24 +897,22 @@ La interfaz de este challenge **no está preparada para funcionar correctamente 
 
 ### Bonus y alcance del entregable
 
-Los distintos **puntos bonus** del challenge no han sido tenidos en cuenta en esta entrega. Estoy en proceso de otros tres challenges en paralelo y no he tenido tiempo de cerrar todo lo opcional. Preferí entregar lo antes posible el core para poder discutir más detalles cuanto antes, dado que es uno de los challenges más extensos.
+Los distintos **bonus** del challenge no han sido tenidos en cuenta en este repo. Estoy en proceso de otros tres challenges en paralelo y no he tenido tiempo de cerrar todo lo opcional. Preferí entregar lo antes posible el core bien prolijo con excelente UX y performance para poder discutir más detalles cuanto antes, dado que es uno de los challenges más extensos.
 
 ## Screenshots
 
-Dropdown menu para filtros
-<img width="1512" height="892" alt="image" src="https://github.com/user-attachments/assets/1774f76b-5d9e-41c9-989c-076aa96ae279" />
+<img width="487" height="360" alt="image" src="https://github.com/user-attachments/assets/11cbbcaf-d3a6-4174-8248-41db991994c9" />
+<img width="1512" height="738" alt="image" src="https://github.com/user-attachments/assets/a8004420-4c58-432d-a8d4-1690916026f4" />
+<img width="1510" height="888" alt="image" src="https://github.com/user-attachments/assets/a5a7f9e6-4ae8-416a-900f-94532c3afffb" />
+<img width="1510" height="893" alt="image" src="https://github.com/user-attachments/assets/3b48db90-f55d-4058-bc77-2216c22ddc97" />
+<img width="1509" height="884" alt="image" src="https://github.com/user-attachments/assets/ed9aca4f-c456-46af-a47a-8ec22e0604b2" />
+<img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/54a40739-1e4c-498a-bc87-a6c796282169" />
+<img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/6348de92-253c-42a8-a172-5ed687f9b4fd" />
+<img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/1b63e75c-9379-4feb-bcd0-c4b47762d4e5" />
 
-Badge de cantidad de filtros
-<img width="218" height="179" alt="image" src="https://github.com/user-attachments/assets/bd91cb4e-71fe-4b69-a94a-2d4fc530a308" />
 
-Calendario
-<img width="1510" height="893" alt="image" src="https://github.com/user-attachments/assets/8e4de453-ab96-46e2-9e6e-1294e086732c" />
 
-Collapse de mesas
-https://github.com/user-attachments/assets/40bf94ff-dac8-42c7-9518-14effb5da1e7
 
-Tooltip de información de reserva
-<img width="487" height="360" alt="image" src="https://github.com/user-attachments/assets/1078c592-fa47-42fb-ba4b-d06d4d993b8e" />
 
-DnD + Creación de reserva + Errores realtime 
+
 
