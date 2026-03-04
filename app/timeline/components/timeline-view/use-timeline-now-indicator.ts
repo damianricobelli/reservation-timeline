@@ -29,7 +29,6 @@ export function useTimelineNowIndicator(): number | null {
     // setTimeout/setInterval. On visibility change to visible, sync the indicator
     // to current time so it doesn't stay stale until the next interval tick.
     const onVisibilityChange = () => {
-      console.log("visibilitychange", document.visibilityState);
       if (document.visibilityState === "visible") {
         setTick(Date.now());
       }
