@@ -60,10 +60,10 @@ export function TimelineCreatePreviewBlock({
 
       {invalid && validationMessage ? (
         <div
-          className="pointer-events-none absolute z-40 max-w-[220px] -translate-x-1/2 truncate rounded-md border border-rose-400 bg-rose-50 px-2 py-1 text-[11px] font-medium text-rose-700 shadow-sm"
+          className="pointer-events-none absolute z-40 -translate-x-1/2 rounded-md border border-rose-400 bg-rose-50 px-2 py-1 text-[11px] font-medium text-rose-700 shadow-sm"
           style={{
             left: toZoomScaledX(blockLayout.left + blockLayout.width / 2),
-            top: RESERVATION_INSET_Y + 2,
+            top: ROW_HEIGHT_PX + 2,
           }}
         >
           {validationMessage}
