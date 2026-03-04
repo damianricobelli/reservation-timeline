@@ -1,15 +1,13 @@
 import dayjs, { type Dayjs } from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import {
   MAX_RESERVATION_MINUTES,
   MIN_RESERVATION_MINUTES,
   SLOT_MINUTES,
   SLOT_WIDTH_PX,
   TIMELINE_DURATION_MINUTES,
-  TIMELINE_START_HOUR,
 } from "@/core/constants";
 import type { ReservationTimelineRecord } from "@/core/types";
+import { getTimelineWindow } from "../domain/timeline-window";
 import type { SelectionReservation, SelectionTable } from "../types";
 import type {
   ActiveResizeState,
@@ -17,9 +15,6 @@ import type {
   TimelineDragPreview,
 } from "./types";
 import { getMoveValidationReason } from "./validation";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 /**
  * Input required to build a drag move preview.
@@ -69,14 +64,10 @@ export function buildDragPreview({
     return null;
   }
 
-  const tz = targetRecord.restaurant.timezone;
-  const timelineStart = dayjs
-    .tz(target.dateKey, tz)
-    .hour(TIMELINE_START_HOUR)
-    .minute(0)
-    .second(0)
-    .millisecond(0);
-  const timelineEnd = timelineStart.add(TIMELINE_DURATION_MINUTES, "minute");
+  const { timelineStart, timelineEnd } = getTimelineWindow(
+    target.dateKey,
+    targetRecord.restaurant.timezone,
+  );
 
   const zoomScaledSlotWidth = SLOT_WIDTH_PX * (zoomPercent / 100);
   const deltaSlots =

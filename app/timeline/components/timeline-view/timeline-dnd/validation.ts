@@ -1,21 +1,13 @@
 import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
-import {
-  TIMELINE_DURATION_MINUTES,
-  TIMELINE_START_HOUR,
-} from "@/core/constants";
 import { isWithinServiceHours } from "@/core/service-hours";
 import type {
   DateKey,
   MoveValidationReason,
   ReservationTimelineRecord,
 } from "@/core/types";
+import { getTimelineWindow } from "../domain/timeline-window";
 import type { SelectionReservation, SelectionTable } from "../types";
 import { getReservationEntityKey } from "../utils";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 /**
  * Validates a candidate reservation placement against business constraints.
@@ -41,14 +33,10 @@ export function getMoveValidationReason({
 }): MoveValidationReason | undefined {
   const candidateStart = dayjs(candidate.startTime);
   const candidateEnd = dayjs(candidate.endTime);
-  const tz = targetRecord.restaurant.timezone;
-  const timelineStart = dayjs
-    .tz(targetDateKey, tz)
-    .hour(TIMELINE_START_HOUR)
-    .minute(0)
-    .second(0)
-    .millisecond(0);
-  const timelineEnd = timelineStart.add(TIMELINE_DURATION_MINUTES, "minute");
+  const { timelineStart, timelineEnd } = getTimelineWindow(
+    targetDateKey,
+    targetRecord.restaurant.timezone,
+  );
 
   if (
     candidateStart.isBefore(timelineStart) ||
@@ -71,7 +59,7 @@ export function getMoveValidationReason({
       candidateEnd,
       targetDateKey,
       targetRecord.restaurant.serviceHours,
-      tz,
+      targetRecord.restaurant.timezone,
     )
   ) {
     return "outside_service_hours";
