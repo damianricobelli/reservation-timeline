@@ -47,7 +47,7 @@ export function TimelineRightDaySection({
                 style={{ top: HEADER_HEIGHT_PX }}
               />
 
-              <CollapsibleContent>
+              <CollapsibleContent className="overflow-visible data-ending-style:overflow-hidden data-starting-style:overflow-hidden">
                 <div>
                   {tableRows.map(({ table, reservations }) => (
                     <TimelineTableRow
