@@ -16,7 +16,14 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Reservation Timeline",
-  description: "Aplicación de timeline de reservas con detección de conflictos en tiempo real.",
+  description:
+    "Aplicación de timeline de reservas con detección de conflictos en tiempo real.",
+  openGraph: {
+    title: "Reservation Timeline",
+    description:
+      "Aplicación de timeline de reservas con detección de conflictos en tiempo real.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({
