@@ -5,7 +5,7 @@ import { getDragValidationMessage } from "./drag-validation-message";
 import { TimelineCreatePreviewBlock } from "./timeline-create-preview-block";
 import { getCreateValidationMessage } from "./timeline-create-validation-message";
 import { TimelineReservationBlock } from "./timeline-reservation-block";
-import type { TimelineRowDelegates } from "./timeline-row-delegates";
+import { useTimelineViewContext } from "./timeline-view-providers";
 import type {
   SelectionReservation,
   SelectionSector,
@@ -21,8 +21,6 @@ type TimelineTableRowProps = {
   reservations: SelectionReservation[];
   timelineStart: TimelineDayModel["timelineStart"];
   timelineEnd: TimelineDayModel["timelineEnd"];
-  selectedReservationIds: Set<string>;
-  rowDelegates: TimelineRowDelegates;
 };
 
 /**
@@ -35,9 +33,8 @@ export function TimelineTableRow({
   reservations,
   timelineStart,
   timelineEnd,
-  selectedReservationIds,
-  rowDelegates,
 }: TimelineTableRowProps) {
+  const { selectedReservationKeys, rowDelegates } = useTimelineViewContext();
   const { dndApi, createApi } = rowDelegates;
   const droppable = dndApi.getRowDroppableAttributes(dateKey, table.id);
   const { ref } = useDroppable({
@@ -60,7 +57,7 @@ export function TimelineTableRow({
       {reservations.map((reservation) => {
         const reservationKey = getReservationRenderKey(reservation);
         const reservationEntityKey = getReservationEntityKey(reservation);
-        const isSelected = selectedReservationIds.has(reservationKey);
+        const isSelected = selectedReservationKeys.has(reservationKey);
         const actionPending =
           rowDelegates.isReservationActionPending(reservationEntityKey);
         const draggable = dndApi.getReservationDraggableAttributes(reservation);

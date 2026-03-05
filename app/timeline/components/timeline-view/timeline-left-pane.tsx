@@ -6,14 +6,13 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { HEADER_HEIGHT_PX, TABLE_LABEL_COL_PX } from "@/core/constants";
+import { useTimelineViewContext } from "./timeline-view-providers";
 import type { TimelineDayModel } from "./types";
 
 type TimelineLeftPaneProps = {
   days: TimelineDayModel[];
   leftPaneRef: RefObject<HTMLDivElement | null>;
   onScroll: UIEventHandler<HTMLDivElement>;
-  isSectorOpen: (sectorKey: string) => boolean;
-  onSectorOpenChange: (sectorKey: string, open: boolean) => void;
 };
 
 function formatTableCapacity(min: number, max: number): string {
@@ -28,9 +27,9 @@ export function TimelineLeftPane({
   days,
   leftPaneRef,
   onScroll,
-  isSectorOpen,
-  onSectorOpenChange,
 }: TimelineLeftPaneProps) {
+  const { isSectorOpen, onSectorOpenChange } = useTimelineViewContext();
+
   return (
     <div
       className="shrink-0 border-r border-slate-200 bg-white"

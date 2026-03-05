@@ -1,17 +1,13 @@
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { GRID_WIDTH_CSS, HEADER_HEIGHT_PX } from "@/core/constants";
 import { TimelineHoursRow } from "./timeline-hours-row";
-import type { TimelineRowDelegates } from "./timeline-row-delegates";
 import { TimelineTableRow } from "./timeline-table-row";
+import { useTimelineViewContext } from "./timeline-view-providers";
 import type { TimelineDayModel } from "./types";
 
 type TimelineRightDaySectionProps = {
   day: TimelineDayModel;
   zoomPercent: number;
-  selectedReservationIds: Set<string>;
-  rowDelegates: TimelineRowDelegates;
-  isSectorOpen: (sectorKey: string) => boolean;
-  onSectorOpenChange: (sectorKey: string, open: boolean) => void;
 };
 
 /**
@@ -20,11 +16,9 @@ type TimelineRightDaySectionProps = {
 export function TimelineRightDaySection({
   day,
   zoomPercent,
-  selectedReservationIds,
-  rowDelegates,
-  isSectorOpen,
-  onSectorOpenChange,
 }: TimelineRightDaySectionProps) {
+  const { isSectorOpen, onSectorOpenChange } = useTimelineViewContext();
+
   return (
     <section
       key={day.dateKey}
@@ -64,8 +58,6 @@ export function TimelineRightDaySection({
                       reservations={reservations}
                       timelineStart={day.timelineStart}
                       timelineEnd={day.timelineEnd}
-                      selectedReservationIds={selectedReservationIds}
-                      rowDelegates={rowDelegates}
                     />
                   ))}
                 </div>

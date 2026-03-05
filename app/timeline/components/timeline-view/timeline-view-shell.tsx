@@ -1,6 +1,5 @@
 import type {
   ComponentProps,
-  PointerEvent,
   ReactNode,
   RefObject,
   UIEventHandler,
@@ -17,7 +16,7 @@ type TimelineViewShellProps = {
   dragModifiers: NonNullable<
     ComponentProps<typeof TimelineViewProviders>["modifiers"]
   >;
-  onTimelinePointerDown: (event: PointerEvent<HTMLDivElement>) => void;
+  contextValue: ComponentProps<typeof TimelineViewProviders>["contextValue"];
   onTimelineWheel: (event: WheelEvent<HTMLDivElement>) => void;
   leftPane: ReactNode;
   rightContent: ReactNode;
@@ -33,7 +32,7 @@ export function TimelineViewShell({
   empty,
   providerHandlers,
   dragModifiers,
-  onTimelinePointerDown,
+  contextValue,
   onTimelineWheel,
   leftPane,
   rightContent,
@@ -49,9 +48,9 @@ export function TimelineViewShell({
       <TimelineViewProviders
         providerHandlers={providerHandlers}
         modifiers={dragModifiers}
+        contextValue={contextValue}
       >
         <TimelineViewLayout
-          onPointerDownCapture={onTimelinePointerDown}
           onWheelCapture={onTimelineWheel}
           leftPane={leftPane}
           rightContent={rightContent}

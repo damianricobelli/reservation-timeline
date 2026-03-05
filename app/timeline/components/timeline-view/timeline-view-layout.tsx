@@ -1,14 +1,13 @@
 import type {
-  PointerEventHandler,
   ReactNode,
   RefObject,
   UIEventHandler,
   WheelEventHandler,
 } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useTimelineViewContext } from "./timeline-view-providers";
 
 type TimelineViewLayoutProps = {
-  onPointerDownCapture: PointerEventHandler<HTMLDivElement>;
   onWheelCapture: WheelEventHandler<HTMLDivElement>;
   leftPane: ReactNode;
   rightContent: ReactNode;
@@ -20,17 +19,18 @@ type TimelineViewLayoutProps = {
  * Two-pane timeline layout with left labels and right scrollable grid.
  */
 export function TimelineViewLayout({
-  onPointerDownCapture,
   onWheelCapture,
   leftPane,
   rightContent,
   rightViewportRef,
   onRightViewportScroll,
 }: TimelineViewLayoutProps) {
+  const { onTimelinePointerDown } = useTimelineViewContext();
+
   return (
     <div
       className="flex h-full min-h-0 min-w-0"
-      onPointerDownCapture={onPointerDownCapture}
+      onPointerDownCapture={onTimelinePointerDown}
       onWheelCapture={onWheelCapture}
     >
       {leftPane}

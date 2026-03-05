@@ -18,6 +18,7 @@ import { useTimelineZoom } from "@/hooks/use-timeline-zoom";
 import { getSeedSelectionForView } from "../timeline-selection";
 import { TimelineLeftPane } from "./timeline-left-pane";
 import { TimelineRightContent } from "./timeline-right-content";
+import { buildTimelineRowDelegates } from "./timeline-row-delegates";
 import { TimelineViewShell } from "./timeline-view-shell";
 import type { TimelineCssVars } from "./types";
 import { useSyncedVerticalScroll } from "./use-synced-vertical-scroll";
@@ -111,6 +112,34 @@ export const TimelineView = () => {
     setRecords: setTimelineRecords,
     tableById,
   });
+  const rowDelegates = useMemo(
+    () =>
+      buildTimelineRowDelegates({
+        onReservationClick: handleReservationClick,
+        dndApi,
+        createApi,
+        reservationActionsApi,
+      }),
+    [createApi, dndApi, handleReservationClick, reservationActionsApi],
+  );
+  const contextValue = useMemo(
+    () => ({
+      selectedReservationKeys,
+      isSectorOpen,
+      onSectorOpenChange: setSectorOpen,
+      onTimelinePointerDown: handleTimelinePointerDown,
+      rowDelegates,
+      reservationActionsApi,
+    }),
+    [
+      selectedReservationKeys,
+      isSectorOpen,
+      setSectorOpen,
+      handleTimelinePointerDown,
+      rowDelegates,
+      reservationActionsApi,
+    ],
+  );
 
   const timelineCssVars: TimelineCssVars = {
     "--timeline-zoom": `${zoomPercent / 100}`,
@@ -150,7 +179,7 @@ export const TimelineView = () => {
       empty={selection.sectors.length === 0 || selection.tables.length === 0}
       providerHandlers={dndApi.providerHandlers}
       dragModifiers={dragModifiers}
-      onTimelinePointerDown={handleTimelinePointerDown}
+      contextValue={contextValue}
       onTimelineWheel={handleTimelineWheel}
       rightViewportRef={rightViewportRef}
       onRightViewportScroll={handleRightPaneScroll}
@@ -159,22 +188,10 @@ export const TimelineView = () => {
           days={days}
           leftPaneRef={leftPaneRef}
           onScroll={handleLeftPaneScroll}
-          isSectorOpen={isSectorOpen}
-          onSectorOpenChange={setSectorOpen}
         />
       }
       rightContent={
-        <TimelineRightContent
-          days={days}
-          selectedReservationIds={selectedReservationKeys}
-          timelineCssVars={timelineCssVars}
-          onReservationClick={handleReservationClick}
-          isSectorOpen={isSectorOpen}
-          onSectorOpenChange={setSectorOpen}
-          dndApi={dndApi}
-          createApi={createApi}
-          reservationActionsApi={reservationActionsApi}
-        />
+        <TimelineRightContent days={days} timelineCssVars={timelineCssVars} />
       }
     />
   );
