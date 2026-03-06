@@ -444,8 +444,15 @@ export function TimelineReservationFormFields({
           <Input
             id={`${idPrefix}-phone`}
             name="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
             defaultValue={defaults.phone ?? ""}
             placeholder="+54 9 341 310 4099"
+            onInput={(event) => {
+              const input = event.currentTarget;
+              input.value = input.value.replace(/[^\d+\-()\s]/g, "");
+            }}
             aria-invalid={Boolean(fieldErrors.phone)}
           />
           <FieldError>{fieldErrors.phone}</FieldError>

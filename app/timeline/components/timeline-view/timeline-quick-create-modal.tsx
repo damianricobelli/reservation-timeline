@@ -1,7 +1,7 @@
 "use client";
 
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -101,6 +101,8 @@ function TimelineQuickCreateModalForm({
       onSubmit(input as TimelineQuickCreateSubmitInput),
     onSuccessClose: onClose,
   });
+  const [isTransitionPending, startTransition] = useTransition();
+  const isSubmitting = isPending || isTransitionPending;
 
   const tableCapacityLabel = `${draft.table.capacity.min}-${draft.table.capacity.max} guests`;
 
@@ -125,7 +127,17 @@ function TimelineQuickCreateModalForm({
         </AlertDialogHeader>
       </div>
 
-      <form className="grid gap-4 px-6 pb-5" action={formAction}>
+      <form
+        className="grid gap-4 px-6 pb-5"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const formData = new FormData(event.currentTarget);
+
+          startTransition(() => {
+            formAction(formData);
+          });
+        }}
+      >
         <TimelineReservationFormFields
           idPrefix="quick-create"
           defaults={{
@@ -149,16 +161,10 @@ function TimelineQuickCreateModalForm({
           }}
         />
 
-        {state.message ? (
-          <p className="rounded-md border border-rose-300 bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700">
-            {state.message}
-          </p>
-        ) : null}
-
         <AlertDialogFooter className="mt-2 border-t border-slate-200/80 pt-4 sm:justify-end">
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? "Creating..." : "Create reservation"}
+          <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Creating..." : "Create reservation"}
           </Button>
         </AlertDialogFooter>
       </form>
