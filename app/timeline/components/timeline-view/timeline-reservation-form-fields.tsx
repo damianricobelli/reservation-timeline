@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { QuickCreateReservationFieldErrors } from "@/app/timeline/actions/validate-quick-create-reservation";
 import {
   Field,
@@ -86,6 +86,12 @@ type TimeOptionGroup = {
 type AbsoluteInterval = {
   start: number;
   end: number;
+};
+
+type ResolvedTimeRange = {
+  from: string;
+  to: string;
+  durationMinutes: number | null;
 };
 
 const MIN_ALLOWED_DURATION_MINUTES = 30;
@@ -175,20 +181,20 @@ function buildTimeOptionGroups(serviceHours: ServiceHour[]) {
 
 function filterTimeOptionGroups(
   groups: TimeOptionGroup[],
-  predicate: (option: TimeOption) => boolean,
+  predicate: (option: TimeOption, group: TimeOptionGroup) => boolean,
 ) {
   return groups
     .map((group) => ({
       ...group,
-      options: group.options.filter(predicate),
+      options: group.options.filter((option) => predicate(option, group)),
     }))
     .filter((group) => group.options.length > 0);
 }
 
-function findOptionAbsoluteMinute(
+function findOptionMatch(
   groups: TimeOptionGroup[],
   value: string | undefined,
-) {
+): { group: TimeOptionGroup; option: TimeOption } | null {
   if (!value) {
     return null;
   }
@@ -196,12 +202,19 @@ function findOptionAbsoluteMinute(
   for (const group of groups) {
     for (const option of group.options) {
       if (option.value === value) {
-        return option.absoluteMinutes;
+        return { group, option };
       }
     }
   }
 
   return null;
+}
+
+function findOptionAbsoluteMinute(
+  groups: TimeOptionGroup[],
+  value: string | undefined,
+) {
+  return findOptionMatch(groups, value)?.option.absoluteMinutes ?? null;
 }
 
 function toSafeSelectValue(value: unknown) {
@@ -245,10 +258,6 @@ export function TimelineReservationFormFields({
     () => buildTimeOptionGroups(serviceHours),
     [serviceHours],
   );
-  const allTimeOptions = useMemo(
-    () => timeOptionGroups.flatMap((group) => group.options),
-    [timeOptionGroups],
-  );
   const occupiedIntervals = useMemo<AbsoluteInterval[]>(
     () =>
       occupiedTimeRanges.map((range) => {
@@ -259,58 +268,6 @@ export function TimelineReservationFormFields({
       }),
     [occupiedTimeRanges],
   );
-  const lastOptionAbsoluteMinutes =
-    allTimeOptions.length > 0
-      ? (allTimeOptions[allTimeOptions.length - 1]?.absoluteMinutes ?? null)
-      : null;
-  const safeDefaultFrom = toSafeSelectValue(defaults.from);
-  const safeDefaultTo = toSafeSelectValue(defaults.to);
-  const fromDefaultValue = useMemo(() => {
-    const defaultFromMinutes = findOptionAbsoluteMinute(
-      timeOptionGroups,
-      safeDefaultFrom,
-    );
-
-    if (
-      defaultFromMinutes === null ||
-      lastOptionAbsoluteMinutes === null ||
-      defaultFromMinutes >= lastOptionAbsoluteMinutes
-    ) {
-      return "";
-    }
-
-    return safeDefaultFrom;
-  }, [lastOptionAbsoluteMinutes, safeDefaultFrom, timeOptionGroups]);
-  const [fromValue, setFromValue] = useState(fromDefaultValue);
-
-  const fromAbsoluteMinutes = useMemo(
-    () => findOptionAbsoluteMinute(timeOptionGroups, fromValue),
-    [fromValue, timeOptionGroups],
-  );
-  const toDefaultValue = useMemo(() => {
-    if (fromAbsoluteMinutes === null) {
-      return "";
-    }
-
-    const defaultToMinutes = findOptionAbsoluteMinute(
-      timeOptionGroups,
-      safeDefaultTo,
-    );
-
-    if (defaultToMinutes !== null && defaultToMinutes > fromAbsoluteMinutes) {
-      return safeDefaultTo;
-    }
-
-    for (const option of allTimeOptions) {
-      if (option.absoluteMinutes > fromAbsoluteMinutes) {
-        return option.value;
-      }
-    }
-
-    return "";
-  }, [allTimeOptions, fromAbsoluteMinutes, safeDefaultTo, timeOptionGroups]);
-  const [toValue, setToValue] = useState(toDefaultValue);
-
   const hasIntervalConflict = useMemo(
     () => (start: number, end: number) =>
       occupiedIntervals.some((interval) =>
@@ -318,18 +275,137 @@ export function TimelineReservationFormFields({
       ),
     [occupiedIntervals],
   );
+  const safeDefaultFrom = toSafeSelectValue(defaults.from);
+  const safeDefaultTo = toSafeSelectValue(defaults.to);
+  const fromDefaultValue = useMemo(() => {
+    const defaultFromMatch = findOptionMatch(timeOptionGroups, safeDefaultFrom);
+    const defaultFromMinutes = defaultFromMatch?.option.absoluteMinutes ?? null;
+    const defaultFromGroup = defaultFromMatch?.group;
+    const defaultFromGroupEndMinutes =
+      defaultFromGroup?.options[defaultFromGroup.options.length - 1]
+        ?.absoluteMinutes;
+
+    if (
+      defaultFromMinutes === null ||
+      defaultFromGroupEndMinutes === undefined ||
+      defaultFromGroupEndMinutes - defaultFromMinutes <=
+        MIN_ALLOWED_DURATION_MINUTES
+    ) {
+      return "";
+    }
+
+    const hasValidEndInSameRange = defaultFromGroup?.options.some(
+        (endOption) =>
+          endOption.absoluteMinutes > defaultFromMinutes &&
+          isDurationAllowed(defaultFromMinutes, endOption.absoluteMinutes) &&
+          !hasIntervalConflict(defaultFromMinutes, endOption.absoluteMinutes),
+      ) ?? false;
+
+    if (!hasValidEndInSameRange) {
+      return "";
+    }
+
+    return safeDefaultFrom;
+  }, [hasIntervalConflict, safeDefaultFrom, timeOptionGroups]);
+  const [fromValue, setFromValue] = useState(fromDefaultValue);
+
+  const selectedFromMatch = useMemo(
+    () => findOptionMatch(timeOptionGroups, fromValue),
+    [fromValue, timeOptionGroups],
+  );
+  const fromAbsoluteMinutes = selectedFromMatch?.option.absoluteMinutes ?? null;
+  const selectedFromGroup = selectedFromMatch?.group ?? null;
+  const toDefaultValue = useMemo(() => {
+    if (fromAbsoluteMinutes === null || !selectedFromGroup) {
+      return "";
+    }
+
+    const defaultToMinutes = findOptionAbsoluteMinute(
+      [selectedFromGroup],
+      safeDefaultTo,
+    );
+
+    if (
+      defaultToMinutes !== null &&
+      defaultToMinutes > fromAbsoluteMinutes &&
+      isDurationAllowed(fromAbsoluteMinutes, defaultToMinutes) &&
+      !hasIntervalConflict(fromAbsoluteMinutes, defaultToMinutes)
+    ) {
+      return safeDefaultTo;
+    }
+
+    for (const option of selectedFromGroup.options) {
+      if (
+        option.absoluteMinutes > fromAbsoluteMinutes &&
+        isDurationAllowed(fromAbsoluteMinutes, option.absoluteMinutes) &&
+        !hasIntervalConflict(fromAbsoluteMinutes, option.absoluteMinutes)
+      ) {
+        return option.value;
+      }
+    }
+
+    return "";
+  }, [
+    fromAbsoluteMinutes,
+    hasIntervalConflict,
+    safeDefaultTo,
+    selectedFromGroup,
+  ]);
+  const [toValue, setToValue] = useState(toDefaultValue);
+  const resolveTimeRange = useCallback(
+    (nextFromValue: string, nextToValue: string): ResolvedTimeRange => {
+      const fromMatch = findOptionMatch(timeOptionGroups, nextFromValue);
+
+      if (!fromMatch) {
+        return {
+          from: "",
+          to: "",
+          durationMinutes: null,
+        };
+      }
+
+      const fromMinutes = fromMatch.option.absoluteMinutes;
+      const toMinutes = findOptionAbsoluteMinute(
+        [fromMatch.group],
+        nextToValue,
+      );
+
+      if (
+        toMinutes === null ||
+        !isDurationAllowed(fromMinutes, toMinutes) ||
+        hasIntervalConflict(fromMinutes, toMinutes)
+      ) {
+        return {
+          from: nextFromValue,
+          to: "",
+          durationMinutes: null,
+        };
+      }
+
+      return {
+        from: nextFromValue,
+        to: nextToValue,
+        durationMinutes: toMinutes - fromMinutes,
+      };
+    },
+    [hasIntervalConflict, timeOptionGroups],
+  );
 
   const fromOptionGroups = useMemo(
     () =>
-      filterTimeOptionGroups(timeOptionGroups, (option) => {
+      filterTimeOptionGroups(timeOptionGroups, (option, group) => {
+        const groupEndMinutes =
+          group.options[group.options.length - 1]?.absoluteMinutes;
+
         if (
-          lastOptionAbsoluteMinutes === null ||
-          option.absoluteMinutes >= lastOptionAbsoluteMinutes
+          groupEndMinutes === undefined ||
+          groupEndMinutes - option.absoluteMinutes <=
+            MIN_ALLOWED_DURATION_MINUTES
         ) {
           return false;
         }
 
-        return allTimeOptions.some(
+        return group.options.some(
           (endOption) =>
             endOption.absoluteMinutes > option.absoluteMinutes &&
             isDurationAllowed(
@@ -342,20 +418,15 @@ export function TimelineReservationFormFields({
             ),
         );
       }),
-    [
-      allTimeOptions,
-      hasIntervalConflict,
-      lastOptionAbsoluteMinutes,
-      timeOptionGroups,
-    ],
+    [hasIntervalConflict, timeOptionGroups],
   );
 
   const toOptionGroups = useMemo(() => {
-    if (fromAbsoluteMinutes === null) {
+    if (fromAbsoluteMinutes === null || !selectedFromGroup) {
       return [];
     }
 
-    return filterTimeOptionGroups(timeOptionGroups, (option) => {
+    return filterTimeOptionGroups([selectedFromGroup], (option) => {
       if (option.absoluteMinutes <= fromAbsoluteMinutes) {
         return false;
       }
@@ -366,57 +437,12 @@ export function TimelineReservationFormFields({
 
       return !hasIntervalConflict(fromAbsoluteMinutes, option.absoluteMinutes);
     });
-  }, [fromAbsoluteMinutes, hasIntervalConflict, timeOptionGroups]);
+  }, [fromAbsoluteMinutes, hasIntervalConflict, selectedFromGroup]);
 
-  const selectedToAbsoluteMinutes = useMemo(
-    () => findOptionAbsoluteMinute(timeOptionGroups, toValue),
-    [timeOptionGroups, toValue],
+  const resolvedTimeRange = useMemo(
+    () => resolveTimeRange(fromValue, toValue),
+    [fromValue, resolveTimeRange, toValue],
   );
-
-  useEffect(() => {
-    if (!onTimeRangeChange) {
-      return;
-    }
-
-    const durationMinutes =
-      fromAbsoluteMinutes !== null &&
-      selectedToAbsoluteMinutes !== null &&
-      isDurationAllowed(fromAbsoluteMinutes, selectedToAbsoluteMinutes)
-        ? selectedToAbsoluteMinutes - fromAbsoluteMinutes
-        : null;
-
-    onTimeRangeChange({
-      from: fromValue,
-      to: toValue,
-      durationMinutes,
-    });
-  }, [
-    fromAbsoluteMinutes,
-    fromValue,
-    onTimeRangeChange,
-    selectedToAbsoluteMinutes,
-    toValue,
-  ]);
-
-  useEffect(() => {
-    if (
-      fromAbsoluteMinutes !== null &&
-      selectedToAbsoluteMinutes !== null &&
-      isDurationAllowed(fromAbsoluteMinutes, selectedToAbsoluteMinutes) &&
-      !hasIntervalConflict(fromAbsoluteMinutes, selectedToAbsoluteMinutes)
-    ) {
-      return;
-    }
-
-    if (toValue) {
-      setToValue("");
-    }
-  }, [
-    fromAbsoluteMinutes,
-    hasIntervalConflict,
-    selectedToAbsoluteMinutes,
-    toValue,
-  ]);
 
   const hasAvailableFromOptions = fromOptionGroups.length > 0;
   const isToDisabled =
@@ -548,29 +574,20 @@ export function TimelineReservationFormFields({
         <Field data-invalid={Boolean(fieldErrors.from)}>
           <FieldLabel htmlFor={`${idPrefix}-from`}>From</FieldLabel>
           <FieldContent>
-            <input type="hidden" name="from" value={fromValue ?? ""} />
+            <input type="hidden" name="from" value={resolvedTimeRange.from} />
             <Select
-              value={fromValue ?? ""}
+              value={resolvedTimeRange.from}
               onValueChange={(value) => {
                 const nextFromValue = toSafeSelectValue(value);
                 setFromValue(nextFromValue);
 
-                const nextFromAbsoluteMinutes = findOptionAbsoluteMinute(
-                  timeOptionGroups,
-                  nextFromValue,
-                );
-                const currentToAbsoluteMinutes = findOptionAbsoluteMinute(
-                  timeOptionGroups,
-                  toValue,
-                );
+                const nextRange = resolveTimeRange(nextFromValue, toValue);
 
-                if (
-                  nextFromAbsoluteMinutes === null ||
-                  currentToAbsoluteMinutes === null ||
-                  currentToAbsoluteMinutes <= nextFromAbsoluteMinutes
-                ) {
-                  setToValue("");
+                if (nextRange.to !== toValue) {
+                  setToValue(nextRange.to);
                 }
+
+                onTimeRangeChange?.(nextRange);
               }}
             >
               <SelectTrigger
@@ -604,11 +621,13 @@ export function TimelineReservationFormFields({
         <Field data-invalid={Boolean(fieldErrors.to)}>
           <FieldLabel htmlFor={`${idPrefix}-to`}>To</FieldLabel>
           <FieldContent>
-            <input type="hidden" name="to" value={toValue ?? ""} />
+            <input type="hidden" name="to" value={resolvedTimeRange.to} />
             <Select
-              value={toValue ?? ""}
+              value={resolvedTimeRange.to}
               onValueChange={(value) => {
-                setToValue(toSafeSelectValue(value));
+                const nextToValue = toSafeSelectValue(value);
+                setToValue(nextToValue);
+                onTimeRangeChange?.(resolveTimeRange(fromValue, nextToValue));
               }}
               disabled={isToDisabled}
             >
